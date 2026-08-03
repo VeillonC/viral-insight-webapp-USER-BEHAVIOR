@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { predict, getReport } from "@/lib/api";
 import { Prediction, Source, Lang } from "@/lib/types";
 import { TEMPLATES } from "@/lib/config";
+import { addHistory, updateHistory } from "@/lib/history";
 import { useLang } from "../LangContext";
 import { InfoTip, NET_NAMES, NetworkCompare, ScoreGauge, MetaGrid, SummaryBox, FactorBars, Suggestions, ReportPanel } from "../components";
 
@@ -18,6 +19,7 @@ const EXAMPLES: { label: string; text: string }[] = [
 
 export default function Analyze() {
   const { lang } = useLang();
+  const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [audYt, setAudYt] = useState("");
   const [audX, setAudX] = useState("");
@@ -33,6 +35,7 @@ export default function Analyze() {
   const [error, setError] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const firstLang = useRef(true);
+  const histId = useRef<string | null>(null);
 
   useEffect(() => {
     const el = taRef.current;
@@ -48,6 +51,7 @@ export default function Analyze() {
     try {
       const res = await getReport(txt, s, audience, l);
       setReport(res.report);
+      if (histId.current) updateHistory(histId.current, { report: res.report });
     } catch (e) {
       setReport(null);
       setReportError(e instanceof Error ? e.message : "unknown error");
@@ -78,6 +82,20 @@ export default function Analyze() {
       const best = res.reduce((a, b) => (b.prediction.viral_score > a.prediction.viral_score ? b : a));
       setSelected(best.source);
       setLoading(false);
+      const id = (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+      histId.current = id;
+      addHistory({
+        id,
+        ts: Date.now(),
+        title: title.trim() || undefined,
+        text,
+        scores: {
+          youtube: res.find((r) => r.source === "youtube")?.prediction.viral_score,
+          x: res.find((r) => r.source === "x")?.prediction.viral_score,
+          reddit: res.find((r) => r.source === "reddit")?.prediction.viral_score,
+        },
+        best: { source: best.source, score: best.prediction.viral_score, label: best.prediction.label },
+      });
       fetchReport(text, best.source, best.audience, lang);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -103,6 +121,11 @@ export default function Analyze() {
       <p className="input-cue">Paste your post and your audience per network — we compare YouTube, X and Reddit, explain the score and write an actionable report. <strong>Fill in the fields below to start.</strong></p>
 
       <div className="card">
+        <div style={{ marginBottom: 18 }}>
+          <label htmlFor="title">Campaign name</label>
+          <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Q2 EV SUV launch" />
+          <div className="help">Give this analysis a name to find it easily in your History.</div>
+        </div>
         <div className="input-grid">
           <div>
             <label htmlFor="post">Post</label>
