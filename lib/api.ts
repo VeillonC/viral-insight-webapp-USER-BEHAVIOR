@@ -24,3 +24,8 @@ export function predict(text: string, source: Source, audience: number | null) {
 export function getReport(text: string, source: Source, audience: number | null, lang: Lang) {
   return postJson<ReportResponse>("/report", { text, source, audience, lang });
 }
+
+// Batch: predict many posts at once (used by the Variant lab).
+export function predictBatch(items: { text: string; source: Source; audience: number | null }[]) {
+  return postJson<Prediction[]>("/predict/batch", { items });
+}

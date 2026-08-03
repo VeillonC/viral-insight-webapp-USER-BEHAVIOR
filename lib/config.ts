@@ -21,3 +21,12 @@ export const GLOSSARY: Record<string, string> = {
   factors: "The features that pushed the score up (green) or down (amber), ranked by impact (SHAP).",
   audience: "Follower / subscriber count of the account posting. Bigger audience usually means more reach.",
 };
+
+// One-click green-marketing snippets the user can insert into a post, by rhetorical role.
+export const TEMPLATES: { role: string; text: string }[] = [
+  { role: "Proof", text: "Tested: 510 km per charge under mixed urban/highway conditions." },
+  { role: "Objection handling", text: "Worried about charging? More than 3,000 charging stations are available nationwide." },
+  { role: "Social proof", text: "Over 25,000 customers have already switched to electric vehicles this year." },
+  { role: "Hook", text: "Still paying for petrol every week? Here's what switching to electric really changes." },
+  { role: "Call to action", text: "Book a free test drive this week and feel the difference yourself." },
+];

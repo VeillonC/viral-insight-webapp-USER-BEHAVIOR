@@ -279,3 +279,20 @@ textarea:focus, input:focus, select:focus { outline: none; border-color: var(--a
 .cta-band { text-align: center; background: linear-gradient(150deg, #0c3b24, #177a3f); border-radius: 16px; padding: 40px 24px; margin-top: 2.5rem; }
 .cta-band h2 { color: #fff; font-size: 30px; margin: 0 0 10px; }
 .cta-band p { color: rgba(255,255,255,0.85); font-size: 17px; margin: 0 0 22px; }
+
+/* ---------- Templates ---------- */
+.templates { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; font-size: 15px; color: var(--text-muted); }
+.tmpl-chip { background: var(--surface); color: var(--accent-dark); border: 1px solid var(--border-accent, #cfe6d6); border-radius: 20px; padding: 6px 14px; cursor: pointer; font-size: 14px; font-family: inherit; }
+.tmpl-chip:hover { background: var(--accent-bg); border-color: var(--accent); }
+
+/* ---------- Buttons (secondary) ---------- */
+.btn-ghost { background: var(--surface); color: var(--accent-dark); border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 18px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; }
+.btn-ghost:hover { background: var(--accent-bg); border-color: var(--accent); }
+.btn-ghost:disabled { opacity: 0.5; cursor: default; }
+.link-x { background: none; border: none; color: var(--text-muted); font-size: 13px; cursor: pointer; margin-left: 10px; text-decoration: underline; font-family: inherit; }
+
+/* ---------- Variant lab ---------- */
+.variant-result.best { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg), var(--shadow); }
+.variant-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.variant-rank { font-family: var(--font-head); font-size: 15px; font-weight: 600; color: var(--text-muted); }
+.variant-text { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }

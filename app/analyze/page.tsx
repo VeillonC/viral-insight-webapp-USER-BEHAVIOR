@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { predict, getReport } from "@/lib/api";
 import { Prediction, Source, Lang } from "@/lib/types";
+import { TEMPLATES } from "@/lib/config";
 import { useLang } from "../LangContext";
 import { InfoTip, NET_NAMES, NetworkCompare, ScoreGauge, MetaGrid, SummaryBox, FactorBars, Suggestions, ReportPanel } from "../components";
 
@@ -84,6 +85,10 @@ export default function Analyze() {
     }
   }
 
+  function addTemplate(txt: string) {
+    setText((prev) => (prev.trim() ? `${prev.trim()} ${txt}` : txt));
+  }
+
   function selectNetwork(s: Source) {
     setSelected(s);
     const r = results.find((x) => x.source === s);
@@ -107,6 +112,12 @@ export default function Analyze() {
               Try an example:
               {EXAMPLES.map((ex) => (
                 <button key={ex.label} className="example-chip" onClick={() => setText(ex.text)}>{ex.label}</button>
+              ))}
+            </div>
+            <div className="templates">
+              Add a template:
+              {TEMPLATES.map((t) => (
+                <button key={t.role} className="tmpl-chip" onClick={() => addTemplate(t.text)} title={t.text}>+ {t.role}</button>
               ))}
             </div>
           </div>
