@@ -239,17 +239,19 @@ textarea:focus, input:focus, select:focus { outline: none; border-color: var(--a
 .net-best { position: absolute; top: 12px; right: 12px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
 .net-hint { font-size: 12px; color: var(--text-muted); margin-top: 12px; }
 
-/* ---------- Diverging Why chart ---------- */
-.dbars { display: flex; flex-direction: column; gap: 10px; }
-.drow { display: grid; grid-template-columns: 210px 1fr; align-items: center; gap: 12px; font-size: 15px; }
-.drow .dname { color: var(--text-secondary); }
-.dtrack { position: relative; height: 18px; }
-.daxis { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--border); }
-.dbar { position: absolute; top: 1px; height: 16px; border-radius: 4px; }
-.dbar.up { background: var(--accent); }
-.dbar.down { background: var(--amber); }
-.dlegend { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 12px; }
-.dlegend .dot { margin: 0 0 0 4px; }
+/* ---------- Why: ranked impact bars ---------- */
+.ibars { display: flex; flex-direction: column; gap: 12px; }
+.ibar-row { display: grid; grid-template-columns: 160px 1fr auto; align-items: center; gap: 12px; font-size: 14px; }
+.ibar-name { color: var(--text-secondary); }
+.ibar-track { height: 18px; }
+.ibar-fill { height: 18px; border-radius: 5px; min-width: 6px; }
+.ibar-fill.up { background: var(--accent); }
+.ibar-fill.down { background: var(--amber); }
+.ibar-tag { font-size: 13px; font-weight: 500; white-space: nowrap; }
+.ibar-tag.up { color: var(--accent-dark); }
+.ibar-tag.down { color: var(--down); }
+.ibar-legend { display: flex; gap: 18px; font-size: 13px; color: var(--text-muted); margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
+.ibar-hint { margin-left: auto; }
 
 /* ---------- Analyze intro ---------- */
 .input-cue { font-size: 18px; line-height: 1.6; color: var(--text-secondary); margin: 1.5rem 0 1.1rem; }
@@ -322,3 +324,42 @@ textarea:focus, input:focus, select:focus { outline: none; border-color: var(--a
 .gloss-item:last-child { border-bottom: none; }
 .gloss-item dt { font-family: var(--font-head); font-size: 16px; font-weight: 600; color: var(--text); }
 .gloss-item dd { margin: 4px 0 0; font-size: 15px; color: var(--text-secondary); }
+
+/* ---------- EV barrier radar ---------- */
+.barrier-list { display: flex; flex-direction: column; }
+.barrier-row { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.barrier-row:last-child { border-bottom: none; }
+.barrier-name { font-size: 15px; color: var(--text); }
+.barrier-badge { font-size: 13px; font-weight: 500; padding: 4px 13px; border-radius: 20px; white-space: nowrap; }
+.barrier-badge.addressed { background: var(--accent-bg); color: var(--accent-dark); }
+.barrier-badge.mentioned { background: var(--down-bg); color: var(--down); }
+.barrier-badge.not_mentioned { background: var(--surface-soft); color: var(--text-muted); }
+.barrier-focus { margin-top: 14px; font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; background: var(--accent-bg); padding: 11px 14px; border-radius: 10px; }
+.barrier-focus strong { color: var(--accent-dark); }
+
+/* ---------- Greenwashing ---------- */
+.risk-badge { display: inline-block; font-size: 14px; font-weight: 600; padding: 5px 14px; border-radius: 20px; }
+.risk-badge.low { background: var(--accent-bg); color: var(--accent-dark); }
+.risk-badge.medium { background: var(--down-bg); color: var(--down); }
+.risk-badge.high { background: var(--danger-bg); color: var(--danger); }
+.gw-note { font-size: 15px; color: var(--text-secondary); margin: 12px 0 0; }
+.gw-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
+.gw-head { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+.gw-list { margin: 0; padding-left: 18px; font-size: 14px; color: var(--text-secondary); }
+.gw-list li { margin-bottom: 5px; }
+.gw-empty { font-size: 14px; color: var(--text-muted); }
+
+/* ---------- Sentiment ---------- */
+.reaction-badge { display: inline-block; font-size: 14px; font-weight: 600; padding: 5px 14px; border-radius: 20px; }
+.reaction-badge.positive { background: var(--accent-bg); color: var(--accent-dark); }
+.reaction-badge.neutral { background: var(--surface-soft); color: var(--text-secondary); }
+.reaction-badge.skeptical { background: var(--down-bg); color: var(--down); }
+.reaction-badge.hostile { background: var(--danger-bg); color: var(--danger); }
+
+/* ---------- Example modal ---------- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(12, 40, 28, 0.55); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 60; }
+.modal { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; max-width: 860px; width: 100%; padding: 24px; position: relative; box-shadow: 0 20px 60px rgba(12, 40, 28, 0.3); }
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.modal-title { font-family: var(--font-head); font-size: 20px; font-weight: 600; }
+.modal-close { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 15px; color: var(--text-secondary); }
+.modal-close:hover { background: var(--surface-soft); }

@@ -22,3 +22,28 @@ export interface ReportResponse {
   report: string;
   prediction: Prediction;
 }
+
+export type BarrierStatus = "addressed" | "mentioned" | "not_mentioned";
+export interface Barrier {
+  key: string;
+  label: string;
+  status: BarrierStatus;
+}
+export interface BarrierResponse {
+  barriers: Barrier[];
+  recommend: string[];
+}
+
+export type RiskLevel = "low" | "medium" | "high";
+export interface GreenwashResponse {
+  risk: RiskLevel;
+  claims: string[];
+  evidence: string[];
+  note: string;
+}
+
+export type Reaction = "positive" | "neutral" | "skeptical" | "hostile";
+export interface SentimentResponse {
+  reaction: Reaction;
+  note: string;
+}

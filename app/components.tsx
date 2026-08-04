@@ -1,7 +1,7 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import { Factor, Prediction, Source } from "@/lib/types";
+import { BarrierResponse, Factor, GreenwashResponse, Prediction, SentimentResponse, Source } from "@/lib/types";
 import { PLATFORM_RELIABILITY, GLOSSARY } from "@/lib/config";
 
 const PATHS: Record<string, string> = {
@@ -14,6 +14,8 @@ const PATHS: Record<string, string> = {
   check: "M20 6 9 17l-5-5",
   up: "M7 17 17 7 M8 7h9v9",
   down: "M7 7l10 10 M17 8v9H8",
+  leaf: "M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z M2 21c0-3 1.9-5.4 5.1-6",
+  chat: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z",
 };
 
 export function Icon({ name, size = 18 }: { name: keyof typeof PATHS; size?: number }) {
@@ -135,24 +137,25 @@ export function FactorBars({ factors }: { factors: Factor[] }) {
   const sorted = [...factors].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
   return (
     <div className="card">
-      <div className="section-title"><Icon name="chart" /> Why <InfoTip term="factors" /></div>
-      <div className="dbars">
+      <div className="section-title"><Icon name="chart" /> Why — what drives the score <InfoTip term="factors" /></div>
+      <div className="ibars">
         {sorted.map((f) => {
-          const w = Math.max(4, (Math.abs(f.contribution) / max) * 50);
+          const ratio = Math.abs(f.contribution) / max;
+          const up = f.direction === "up";
+          const tag = up ? (ratio >= 0.6 ? "strong" : ratio >= 0.3 ? "medium" : "minor") : "hurts";
           return (
-            <div className="drow" key={f.feature}>
-              <span className="dname">{pretty(f)}</span>
-              <div className="dtrack">
-                <div className="daxis" />
-                <div className={`dbar ${f.direction}`} style={f.direction === "up" ? { left: "50%", width: `${w}%` } : { right: "50%", width: `${w}%` }} />
-              </div>
+            <div className="ibar-row" key={f.feature}>
+              <span className="ibar-name">{pretty(f)}</span>
+              <div className="ibar-track"><div className={`ibar-fill ${f.direction}`} style={{ width: `${Math.max(5, ratio * 100)}%` }} /></div>
+              <span className={`ibar-tag ${f.direction}`}>{up ? "▲" : "▼"} {tag}</span>
             </div>
           );
         })}
       </div>
-      <div className="dlegend">
-        <span><span className="dot down" /> holds it back</span>
-        <span>pushes viral <span className="dot up" /></span>
+      <div className="ibar-legend">
+        <span><span className="dot up" />pushes viral</span>
+        <span><span className="dot down" />holds it back</span>
+        <span className="ibar-hint">Longer bar = bigger impact</span>
       </div>
     </div>
   );
@@ -169,6 +172,127 @@ export function Suggestions({ items }: { items: string[] }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+const BARRIER_PRIORITY = ["range_anxiety", "charging_infrastructure", "price_incentives", "battery_degradation", "safety_fire", "maintenance_cost"];
+const STATUS_TEXT: Record<string, string> = { addressed: "Addressed", mentioned: "Mentioned", not_mentioned: "Not mentioned" };
+
+export function BarrierRadar({ data, loading, error }: { data: BarrierResponse | null; loading: boolean; error: string | null }) {
+  const focus = data
+    ? data.barriers
+        .filter((b) => b.status !== "addressed")
+        .sort((a, b) => BARRIER_PRIORITY.indexOf(a.key) - BARRIER_PRIORITY.indexOf(b.key))
+        .slice(0, 2)
+    : [];
+  return (
+    <div className="card">
+      <div className="section-title"><Icon name="shield" /> EV barrier radar</div>
+      {loading && <div className="loading-row"><span className="spinner" />Checking the six EV-adoption barriers…</div>}
+      {error && !loading && <div className="warn">Barrier analysis couldn&apos;t run: {error}</div>}
+      {data && !loading && (
+        <>
+          <div className="barrier-list">
+            {data.barriers.map((b) => (
+              <div className="barrier-row" key={b.key}>
+                <span className="barrier-name">{b.label}</span>
+                <span className={`barrier-badge ${b.status}`}>{STATUS_TEXT[b.status] ?? b.status}</span>
+              </div>
+            ))}
+          </div>
+          {focus.length > 0 && (
+            <div className="barrier-focus">
+              <Icon name="bulb" size={15} /> To improve this post, address: <strong>{focus.map((f) => f.label).join(", ")}</strong>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+const RISK_TEXT: Record<string, string> = { low: "Low risk", medium: "Medium risk", high: "High risk" };
+
+export function GreenwashCard({ data, loading, error }: { data: GreenwashResponse | null; loading: boolean; error: string | null }) {
+  return (
+    <div className="card">
+      <div className="section-title"><Icon name="leaf" /> Greenwashing risk</div>
+      {loading && <div className="loading-row"><span className="spinner" />Checking claims vs evidence…</div>}
+      {error && !loading && <div className="warn">Greenwashing check couldn&apos;t run: {error}</div>}
+      {data && !loading && (
+        <>
+          <span className={`risk-badge ${data.risk}`}>{RISK_TEXT[data.risk] ?? data.risk}</span>
+          {data.note && <p className="gw-note">{data.note}</p>}
+          <div className="gw-cols">
+            <div>
+              <div className="gw-head">Green claims ({data.claims.length})</div>
+              {data.claims.length ? <ul className="gw-list">{data.claims.map((c, i) => <li key={i}>{c}</li>)}</ul> : <div className="gw-empty">None detected.</div>}
+            </div>
+            <div>
+              <div className="gw-head">Supporting evidence ({data.evidence.length})</div>
+              {data.evidence.length ? <ul className="gw-list">{data.evidence.map((e, i) => <li key={i}>{e}</li>)}</ul> : <div className="gw-empty">None detected.</div>}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+const REACTION_TEXT: Record<string, string> = { positive: "Positive", neutral: "Neutral", skeptical: "Skeptical", hostile: "Hostile" };
+
+export function SentimentCard({ data, loading, error }: { data: SentimentResponse | null; loading: boolean; error: string | null }) {
+  return (
+    <div className="card">
+      <div className="section-title"><Icon name="chat" /> Likely audience reaction</div>
+      {loading && <div className="loading-row"><span className="spinner" />Predicting how the audience would react…</div>}
+      {error && !loading && <div className="warn">Reaction analysis couldn&apos;t run: {error}</div>}
+      {data && !loading && (
+        <>
+          <span className={`reaction-badge ${data.reaction}`}>{REACTION_TEXT[data.reaction] ?? data.reaction}</span>
+          {data.note && <p className="gw-note">{data.note}</p>}
+        </>
+      )}
+    </div>
+  );
+}
+
+export function AnalysisDetail({ post, scoresLine, source, prediction, barriers, greenwash, sentiment, report }: {
+  post?: string;
+  scoresLine?: string;
+  source: Source;
+  prediction: Prediction;
+  barriers?: BarrierResponse | null;
+  greenwash?: GreenwashResponse | null;
+  sentiment?: SentimentResponse | null;
+  report?: string | null;
+}) {
+  return (
+    <>
+      {(post || scoresLine) && (
+        <div className="preview" style={{ marginBottom: "1.25rem" }}>
+          {post && <><div className="lbl">Analyzed post</div><div className="txt">{post}</div></>}
+          {scoresLine && <div className="tags">{scoresLine}</div>}
+        </div>
+      )}
+      <div className="metrics">
+        <ScoreGauge prediction={prediction} />
+        <MetaGrid prediction={prediction} source={source} />
+      </div>
+      <SummaryBox factors={prediction.top_factors} />
+      {(barriers || greenwash) && (
+        <div className="cols">
+          {barriers && <BarrierRadar data={barriers} loading={false} error={null} />}
+          {greenwash && <GreenwashCard data={greenwash} loading={false} error={null} />}
+        </div>
+      )}
+      {sentiment && <div style={{ marginBottom: "1.25rem" }}><SentimentCard data={sentiment} loading={false} error={null} /></div>}
+      <div className="stack">
+        <FactorBars factors={prediction.top_factors} />
+        {report && <ReportPanel report={report} loading={false} error={null} />}
+        <Suggestions items={prediction.suggestions} />
+      </div>
+    </>
   );
 }
 

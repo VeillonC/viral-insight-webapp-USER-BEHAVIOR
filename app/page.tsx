@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon } from "./components";
+import ExampleShowcase from "./ExampleShowcase";
 
 function HeroArt() {
   return (
@@ -53,54 +54,7 @@ export default function Landing() {
       </div>
 
       <div className="eyebrow" id="examples">Example reports</div>
-      <div className="examples-grid">
-        <div className="ex-report">
-          <div className="ex-head">
-            <span className="ex-score" style={{ color: "var(--accent-dark)" }}>83%</span>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: "17px" }}>YouTube — viral-likely</div>
-              <div className="ex-net">&quot;New electric SUV, 510 km range — book your test drive today!&quot;</div>
-            </div>
-          </div>
-          <div className="ex-split">
-            <div><div className="ex-lbl up">Helping</div><div className="ex-tags">Channel audience · On-topic content · Clear benefit</div></div>
-            <div><div className="ex-lbl down">Holding back</div><div className="ex-tags">High urgency · Reading difficulty</div></div>
-          </div>
-          <div className="ex-body">
-            <strong>Likely viral (83%).</strong> This post is a strong fit for YouTube: the channel&apos;s large
-            subscriber base and a clear, on-topic benefit (range) drive the score up. The main drag is the pushy
-            &quot;today!&quot; urgency and a slightly dense phrasing.
-          </div>
-          <ul className="ex-tips">
-            <li>Lead with the 510 km figure as a hook, not a claim.</li>
-            <li>Replace &quot;today!&quot; with a softer, credible CTA.</li>
-            <li>Add one proof point (independent range test).</li>
-          </ul>
-        </div>
-
-        <div className="ex-report">
-          <div className="ex-head">
-            <span className="ex-score" style={{ color: "var(--down)" }}>28%</span>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: "17px" }}>X — not-viral</div>
-              <div className="ex-net">&quot;Charging network now available nationwide.&quot;</div>
-            </div>
-          </div>
-          <div className="ex-split">
-            <div><div className="ex-lbl up">Helping</div><div className="ex-tags">Relevant topic</div></div>
-            <div><div className="ex-lbl down">Holding back</div><div className="ex-tags">No hook · Small audience · No proof</div></div>
-          </div>
-          <div className="ex-body">
-            <strong>Unlikely to go viral (28%).</strong> The message is informative but reads flat for X, where posts
-            need a strong opening. With a modest follower count and no concrete figures, it struggles to stand out.
-          </div>
-          <ul className="ex-tips">
-            <li>Open with a bold benefit or a surprising number.</li>
-            <li>Add proof: how many stations, what coverage.</li>
-            <li>Give a reason to act now.</li>
-          </ul>
-        </div>
-      </div>
+      <ExampleShowcase />
 
       <div className="cta-band">
         <h2>Ready to see how your post performs?</h2>

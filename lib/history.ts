@@ -1,10 +1,17 @@
+import { BarrierResponse, GreenwashResponse, Prediction, SentimentResponse, Source } from "./types";
+
 export interface HistoryItem {
   id: string;
   ts: number;
   title?: string;
   text: string;
+  source?: Source;
   scores: { youtube?: number; x?: number; reddit?: number };
   best: { source: string; score: number; label: string };
+  prediction?: Prediction;
+  barriers?: BarrierResponse;
+  greenwash?: GreenwashResponse;
+  sentiment?: SentimentResponse;
   report?: string;
 }
 

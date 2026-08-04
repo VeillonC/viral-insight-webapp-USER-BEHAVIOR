@@ -1,4 +1,4 @@
-import { Lang, Prediction, ReportResponse, Source } from "./types";
+import { BarrierResponse, GreenwashResponse, Lang, Prediction, ReportResponse, SentimentResponse, Source } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://100.70.0.2:8000";
 
@@ -28,4 +28,19 @@ export function getReport(text: string, source: Source, audience: number | null,
 // Batch: predict many posts at once (used by the Variant lab).
 export function predictBatch(items: { text: string; source: Source; audience: number | null }[]) {
   return postJson<Prediction[]>("/predict/batch", { items });
+}
+
+// EV adoption barrier radar (via Qwen). Depends on the post text only.
+export function getBarriers(text: string) {
+  return postJson<BarrierResponse>("/barriers", { text });
+}
+
+// Greenwashing risk (via Qwen). Depends on the post text only.
+export function getGreenwashing(text: string) {
+  return postJson<GreenwashResponse>("/greenwashing", { text });
+}
+
+// Likely audience reaction (via Qwen). Depends on the post text only.
+export function getSentiment(text: string) {
+  return postJson<SentimentResponse>("/sentiment", { text });
 }

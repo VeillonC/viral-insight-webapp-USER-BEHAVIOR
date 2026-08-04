@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import ReactMarkdown from "react-markdown";
 import { getHistory, deleteHistory, clearHistory, HistoryItem } from "@/lib/history";
+import { Source } from "@/lib/types";
+import { AnalysisDetail } from "../components";
 
 const NAMES: Record<string, string> = { youtube: "YouTube", x: "X", reddit: "Reddit" };
 const pct = (v?: number) => (v == null ? "—" : `${Math.round(v * 100)}%`);
@@ -12,7 +13,7 @@ export default function History() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
   const [sort, setSort] = useState<"date" | "score">("date");
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openItem, setOpenItem] = useState<HistoryItem | null>(null);
 
   useEffect(() => { setItems(getHistory()); }, []);
 
@@ -28,9 +29,10 @@ export default function History() {
   function onClear() { if (confirm("Delete all saved analyses?")) { clearHistory(); setItems([]); } }
 
   function exportCsv() {
-    const head = ["date", "text", "best_network", "best_score", "youtube", "x", "reddit"];
+    const head = ["date", "title", "text", "best_network", "best_score", "youtube", "x", "reddit"];
     const rows = filtered.map((i) => [
       new Date(i.ts).toISOString(),
+      `"${(i.title ?? "").replace(/"/g, '""')}"`,
       `"${i.text.replace(/"/g, '""')}"`,
       i.best.source, pct(i.best.score),
       pct(i.scores.youtube), pct(i.scores.x), pct(i.scores.reddit),
@@ -42,6 +44,9 @@ export default function History() {
     URL.revokeObjectURL(url);
   }
 
+  const scoresLine = (i: HistoryItem) =>
+    `YouTube ${pct(i.scores.youtube)} · X ${pct(i.scores.x)} · Reddit ${pct(i.scores.reddit)} · Best: ${NAMES[i.best.source]}`;
+
   return (
     <>
       <h1 className="page-title">History</h1>
@@ -52,7 +57,7 @@ export default function History() {
       ) : (
         <>
           <div className="hist-controls">
-            <input placeholder="Search text…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ maxWidth: 260 }} />
+            <input placeholder="Search name or text…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ maxWidth: 260 }} />
             <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ maxWidth: 170 }}>
               <option value="all">All networks</option>
               <option value="youtube">Best on YouTube</option>
@@ -81,19 +86,35 @@ export default function History() {
                     </div>
                   </div>
                   <div className="hist-actions">
-                    {i.report && <button className="link-x" onClick={() => setOpenId(openId === i.id ? null : i.id)}>{openId === i.id ? "hide report" : "view report"}</button>}
+                    {i.prediction && <button className="link-x" onClick={() => setOpenItem(i)}>view full analysis</button>}
                     <button className="link-x" onClick={() => onDelete(i.id)}>delete</button>
                   </div>
                 </div>
-                {openId === i.id && i.report && (
-                  <div className="report-text markdown" style={{ marginTop: 12, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-                    <ReactMarkdown>{i.report.replace(/^\s*#{0,6}\s*report\s*\r?\n+/i, "").trim()}</ReactMarkdown>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         </>
+      )}
+
+      {openItem && openItem.prediction && (
+        <div className="modal-overlay" onClick={() => setOpenItem(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <span className="modal-title">{openItem.title || "Analysis"}</span>
+              <button className="modal-close" onClick={() => setOpenItem(null)} aria-label="Close">✕</button>
+            </div>
+            <AnalysisDetail
+              post={openItem.text}
+              scoresLine={scoresLine(openItem)}
+              source={(openItem.source ?? openItem.best.source) as Source}
+              prediction={openItem.prediction}
+              barriers={openItem.barriers}
+              greenwash={openItem.greenwash}
+              sentiment={openItem.sentiment}
+              report={openItem.report}
+            />
+          </div>
+        </div>
       )}
     </>
   );

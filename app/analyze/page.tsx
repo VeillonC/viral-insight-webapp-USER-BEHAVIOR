@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { predict, getReport } from "@/lib/api";
-import { Prediction, Source, Lang } from "@/lib/types";
+import { predict, getReport, getBarriers, getGreenwashing, getSentiment } from "@/lib/api";
+import { Prediction, Source, Lang, BarrierResponse, GreenwashResponse, SentimentResponse } from "@/lib/types";
 import { TEMPLATES } from "@/lib/config";
 import { addHistory, updateHistory } from "@/lib/history";
 import { useLang } from "../LangContext";
-import { InfoTip, NET_NAMES, NetworkCompare, ScoreGauge, MetaGrid, SummaryBox, FactorBars, Suggestions, ReportPanel } from "../components";
+import { InfoTip, NET_NAMES, NetworkCompare, ScoreGauge, MetaGrid, SummaryBox, FactorBars, Suggestions, ReportPanel, BarrierRadar, GreenwashCard, SentimentCard } from "../components";
 
 interface NetResult { source: Source; audience: number | null; prediction: Prediction; }
 const NETWORKS: Source[] = ["youtube", "x", "reddit"];
@@ -34,6 +34,15 @@ export default function Analyze() {
   const [loadingReport, setLoadingReport] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [barriers, setBarriers] = useState<BarrierResponse | null>(null);
+  const [loadingBarriers, setLoadingBarriers] = useState(false);
+  const [barriersError, setBarriersError] = useState<string | null>(null);
+  const [greenwash, setGreenwash] = useState<GreenwashResponse | null>(null);
+  const [loadingGreenwash, setLoadingGreenwash] = useState(false);
+  const [greenwashError, setGreenwashError] = useState<string | null>(null);
+  const [sentiment, setSentiment] = useState<SentimentResponse | null>(null);
+  const [loadingSentiment, setLoadingSentiment] = useState(false);
+  const [sentimentError, setSentimentError] = useState<string | null>(null);
   const firstLang = useRef(true);
   const histId = useRef<string | null>(null);
 
@@ -60,6 +69,51 @@ export default function Analyze() {
     }
   }
 
+  async function fetchBarriers(txt: string) {
+    setLoadingBarriers(true);
+    setBarriersError(null);
+    try {
+      const b = await getBarriers(txt);
+      setBarriers(b);
+      if (histId.current) updateHistory(histId.current, { barriers: b });
+    } catch (e) {
+      setBarriers(null);
+      setBarriersError(e instanceof Error ? e.message : "unknown error");
+    } finally {
+      setLoadingBarriers(false);
+    }
+  }
+
+  async function fetchGreenwash(txt: string) {
+    setLoadingGreenwash(true);
+    setGreenwashError(null);
+    try {
+      const g = await getGreenwashing(txt);
+      setGreenwash(g);
+      if (histId.current) updateHistory(histId.current, { greenwash: g });
+    } catch (e) {
+      setGreenwash(null);
+      setGreenwashError(e instanceof Error ? e.message : "unknown error");
+    } finally {
+      setLoadingGreenwash(false);
+    }
+  }
+
+  async function fetchSentiment(txt: string) {
+    setLoadingSentiment(true);
+    setSentimentError(null);
+    try {
+      const s = await getSentiment(txt);
+      setSentiment(s);
+      if (histId.current) updateHistory(histId.current, { sentiment: s });
+    } catch (e) {
+      setSentiment(null);
+      setSentimentError(e instanceof Error ? e.message : "unknown error");
+    } finally {
+      setLoadingSentiment(false);
+    }
+  }
+
   useEffect(() => {
     if (firstLang.current) { firstLang.current = false; return; }
     const sel = results.find((r) => r.source === selected);
@@ -74,6 +128,12 @@ export default function Analyze() {
     setReport(null);
     setError(null);
     setReportError(null);
+    setBarriers(null);
+    setBarriersError(null);
+    setGreenwash(null);
+    setGreenwashError(null);
+    setSentiment(null);
+    setSentimentError(null);
     setLoading(true);
     try {
       const preds = await Promise.all(NETWORKS.map((s) => predict(text, s, auds[s])));
@@ -89,14 +149,19 @@ export default function Analyze() {
         ts: Date.now(),
         title: title.trim() || undefined,
         text,
+        source: best.source,
         scores: {
           youtube: res.find((r) => r.source === "youtube")?.prediction.viral_score,
           x: res.find((r) => r.source === "x")?.prediction.viral_score,
           reddit: res.find((r) => r.source === "reddit")?.prediction.viral_score,
         },
         best: { source: best.source, score: best.prediction.viral_score, label: best.prediction.label },
+        prediction: best.prediction,
       });
       fetchReport(text, best.source, best.audience, lang);
+      fetchBarriers(text);
+      fetchGreenwash(text);
+      fetchSentiment(text);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
       setLoading(false);
@@ -179,6 +244,13 @@ export default function Analyze() {
                 <MetaGrid prediction={sel.prediction} source={selected} />
               </div>
               <SummaryBox factors={sel.prediction.top_factors} />
+              <div className="cols">
+                <BarrierRadar data={barriers} loading={loadingBarriers} error={barriersError} />
+                <GreenwashCard data={greenwash} loading={loadingGreenwash} error={greenwashError} />
+              </div>
+              <div style={{ marginBottom: "1.25rem" }}>
+                <SentimentCard data={sentiment} loading={loadingSentiment} error={sentimentError} />
+              </div>
               <div className="stack">
                 <FactorBars factors={sel.prediction.top_factors} />
                 <ReportPanel report={report} loading={loadingReport} error={reportError} />
