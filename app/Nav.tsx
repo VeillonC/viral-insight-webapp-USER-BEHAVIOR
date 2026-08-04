@@ -4,17 +4,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useLang } from "./LangContext";
+import { useT } from "@/lib/i18n";
 
 const LINKS = [
-  { href: "/analyze", label: "Analyze" },
-  { href: "/variant-lab", label: "Variant lab" },
-  { href: "/history", label: "History" },
-  { href: "/insights", label: "Insights" },
+  { href: "/analyze", key: "nav.analyze" },
+  { href: "/variant-lab", key: "nav.variant" },
+  { href: "/history", key: "nav.history" },
+  { href: "/insights", key: "nav.insights" },
 ];
 
 export default function Nav() {
   const path = usePathname();
   const { lang, setLang } = useLang();
+  const { t } = useT();
   return (
     <nav className="nav">
       <div className="nav-inner">
@@ -27,7 +29,7 @@ export default function Nav() {
         <div className="nav-links">
           {LINKS.map((l) => (
             <Link key={l.href} href={l.href} className={path === l.href ? "active" : ""}>
-              {l.label}
+              {t(l.key)}
             </Link>
           ))}
         </div>

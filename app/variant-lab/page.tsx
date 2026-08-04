@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { predictBatch } from "@/lib/api";
 import { Prediction, Source } from "@/lib/types";
+import { useT } from "@/lib/i18n";
 
 interface VarResult { text: string; prediction: Prediction; }
 
 export default function VariantLab() {
+  const { t } = useT();
   const [source, setSource] = useState<Source>("youtube");
   const [audience, setAudience] = useState("");
   const [variants, setVariants] = useState<string[]>(["", ""]);
@@ -21,7 +23,7 @@ export default function VariantLab() {
   async function onCompare() {
     const aud = audience.trim() ? Number(audience.replace(/[^0-9.]/g, "")) : null;
     const items = variants.map((t) => t.trim()).filter(Boolean).map((t) => ({ text: t, source, audience: aud }));
-    if (items.length < 2) { setError("Add at least two non-empty variants to compare."); return; }
+    if (items.length < 2) { setError(t("vl.need2")); return; }
     setError(null);
     setLoading(true);
     setResults([]);
@@ -29,7 +31,7 @@ export default function VariantLab() {
       const preds = await predictBatch(items);
       setResults(items.map((it, i) => ({ text: it.text, prediction: preds[i] })));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof Error ? e.message : t("vl.err"));
     } finally {
       setLoading(false);
     }
@@ -40,13 +42,13 @@ export default function VariantLab() {
 
   return (
     <>
-      <h1 className="page-title">Variant lab</h1>
-      <p className="input-cue">Write several versions of a post and compare their viral score on the same platform — pick the strongest before publishing.</p>
+      <h1 className="page-title">{t("vl.title")}</h1>
+      <p className="input-cue">{t("vl.cue")}</p>
 
       <div className="card">
         <div className="fields">
           <div style={{ maxWidth: 220 }}>
-            <label htmlFor="vsource">Platform</label>
+            <label htmlFor="vsource">{t("vl.platform")}</label>
             <select id="vsource" value={source} onChange={(e) => setSource(e.target.value as Source)}>
               <option value="youtube">YouTube</option>
               <option value="x">X</option>
@@ -54,7 +56,7 @@ export default function VariantLab() {
             </select>
           </div>
           <div style={{ maxWidth: 220 }}>
-            <label htmlFor="vaud">Audience (optional)</label>
+            <label htmlFor="vaud">{t("vl.aud")}</label>
             <input id="vaud" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. 50000" inputMode="numeric" />
           </div>
         </div>
@@ -63,17 +65,17 @@ export default function VariantLab() {
           {variants.map((v, i) => (
             <div key={i}>
               <label>
-                Variant {i + 1}
-                {variants.length > 2 && <button className="link-x" onClick={() => removeVariant(i)}>remove</button>}
+                {t("vl.variant", i + 1)}
+                {variants.length > 2 && <button className="link-x" onClick={() => removeVariant(i)}>{t("vl.remove")}</button>}
               </label>
-              <textarea value={v} onChange={(e) => setVariant(i, e.target.value)} placeholder="Write a version of your post…" style={{ minHeight: 90 }} />
+              <textarea value={v} onChange={(e) => setVariant(i, e.target.value)} placeholder={t("vl.variant.ph")} style={{ minHeight: 90 }} />
             </div>
           ))}
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16, gap: 12, flexWrap: "wrap" }}>
-          <button className="btn-ghost" onClick={addVariant} disabled={variants.length >= 5}>+ Add variant</button>
-          <button className="btn" onClick={onCompare} disabled={loading}>{loading ? "Comparing…" : "Compare variants"}</button>
+          <button className="btn-ghost" onClick={addVariant} disabled={variants.length >= 5}>{t("vl.add")}</button>
+          <button className="btn" onClick={onCompare} disabled={loading}>{loading ? t("vl.comparing") : t("vl.compare")}</button>
         </div>
       </div>
 
@@ -81,7 +83,7 @@ export default function VariantLab() {
 
       {results.length > 0 && (
         <>
-          <div className="eyebrow">Ranking</div>
+          <div className="eyebrow">{t("vl.ranking")}</div>
           <div className="stack">
             {ranked.map((r, idx) => {
               const pct = Math.round(r.prediction.viral_score * 100);
@@ -91,8 +93,8 @@ export default function VariantLab() {
                   <div className="variant-top">
                     <span className="variant-rank">#{idx + 1}</span>
                     <span className="ex-score" style={{ color: isViral ? "var(--accent-dark)" : "var(--down)" }}>{pct}%</span>
-                    <span className="badge">{r.prediction.label}</span>
-                    {r.text === bestText && <span className="net-best" style={{ position: "static" }}>Best</span>}
+                    <span className="badge">{r.prediction.label === "viral-likely" ? t("lbl.viral") : r.prediction.label === "not-viral" ? t("lbl.notviral") : r.prediction.label}</span>
+                    {r.text === bestText && <span className="net-best" style={{ position: "static" }}>{t("cmp.best")}</span>}
                   </div>
                   <div className="variant-text">{r.text}</div>
                 </div>

@@ -1,8 +1,15 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import { BarrierResponse, Factor, GreenwashResponse, Prediction, SentimentResponse, Source } from "@/lib/types";
+import { BarrierResponse, Factor, GreenwashResponse, Lang, Prediction, SentimentResponse, Source } from "@/lib/types";
 import { PLATFORM_RELIABILITY, GLOSSARY } from "@/lib/config";
+import { useT, factorLabel, TFunc } from "@/lib/i18n";
+
+function labelText(t: TFunc, label: string): string {
+  if (label === "viral-likely") return t("lbl.viral");
+  if (label === "not-viral") return t("lbl.notviral");
+  return label;
+}
 
 const PATHS: Record<string, string> = {
   target: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z",
@@ -27,9 +34,11 @@ export function Icon({ name, size = 18 }: { name: keyof typeof PATHS; size?: num
 }
 
 export function InfoTip({ term }: { term: keyof typeof GLOSSARY }) {
+  const { t } = useT();
+  const text = t(`gloss.${term}`);
   return (
-    <span className="tip" tabIndex={0} aria-label={GLOSSARY[term]}>
-      i<span className="tip-bubble">{GLOSSARY[term]}</span>
+    <span className="tip" tabIndex={0} aria-label={text}>
+      i<span className="tip-bubble">{text}</span>
     </span>
   );
 }
@@ -41,11 +50,12 @@ export function NetworkCompare({ results, selected, onSelect }: {
   selected: Source;
   onSelect: (s: Source) => void;
 }) {
+  const { t } = useT();
   const best = results.reduce((a, b) => (b.prediction.viral_score > a.prediction.viral_score ? b : a), results[0]);
   const sorted = [...results].sort((a, b) => b.prediction.viral_score - a.prediction.viral_score);
   return (
     <div className="card" style={{ marginBottom: "1.25rem" }}>
-      <div className="section-title"><Icon name="chart" /> How it performs per network</div>
+      <div className="section-title"><Icon name="chart" /> {t("cmp.pernet")}</div>
       <div className="net-grid">
         {sorted.map((r) => {
           const pct = Math.round(r.prediction.viral_score * 100);
@@ -53,24 +63,25 @@ export function NetworkCompare({ results, selected, onSelect }: {
           const isViral = r.prediction.viral_score >= 0.5;
           return (
             <button key={r.source} className={`net-card${r.source === selected ? " active" : ""}`} onClick={() => onSelect(r.source)}>
-              {r.source === best.source && <span className="net-best">Best</span>}
+              {r.source === best.source && <span className="net-best">{t("cmp.best")}</span>}
               <div className="net-name">{NET_NAMES[r.source]}</div>
               <div className={`net-score${isViral ? "" : " low"}`}>{pct}%</div>
-              <div className="net-sub">{r.prediction.label} · reliability {rel}%</div>
+              <div className="net-sub">{labelText(t, r.prediction.label)} · {t("cmp.reliability", rel)}</div>
             </button>
           );
         })}
       </div>
-      <div className="net-hint">Click a network to see its full breakdown below.</div>
+      <div className="net-hint">{t("cmp.clicknet")}</div>
     </div>
   );
 }
 
-function pretty(f: Factor) {
-  return f.feature.startsWith("topic") ? "Content theme" : f.label;
+function pretty(lang: Lang, f: Factor) {
+  return factorLabel(lang, f.feature, f.label);
 }
 
 export function ScoreGauge({ prediction }: { prediction: Prediction }) {
+  const { t } = useT();
   const pct = Math.round(prediction.viral_score * 100);
   const isViral = prediction.viral_score >= 0.5;
   const C = 2 * Math.PI * 38;
@@ -84,14 +95,15 @@ export function ScoreGauge({ prediction }: { prediction: Prediction }) {
         <text x="46" y="52" textAnchor="middle" fontSize="22" fontWeight="700" fill={color} fontFamily="var(--font-head)">{pct}%</text>
       </svg>
       <div>
-        <div className="gauge-label">Viral probability <InfoTip term="probability" /></div>
-        <div className="badge">{prediction.label}</div>
+        <div className="gauge-label">{t("cmp.viralprob")} <InfoTip term="probability" /></div>
+        <div className="badge">{labelText(t, prediction.label)}</div>
       </div>
     </div>
   );
 }
 
 export function MetaGrid({ prediction, source }: { prediction: Prediction; source: Source }) {
+  const { t } = useT();
   const conf = Math.round(prediction.confidence * 100);
   const rel = PLATFORM_RELIABILITY[source] ?? PLATFORM_RELIABILITY[""];
   const relPct = Math.round(rel * 100);
@@ -99,33 +111,34 @@ export function MetaGrid({ prediction, source }: { prediction: Prediction; sourc
   return (
     <>
       <div className="metric">
-        <div className="label"><span className="ico-badge teal"><Icon name="target" size={15} /></span>Confidence <InfoTip term="confidence" /></div>
+        <div className="label"><span className="ico-badge teal"><Icon name="target" size={15} /></span>{t("cmp.confidence")} <InfoTip term="confidence" /></div>
         <div className="value">{conf}%</div>
-        <div className="sub">distance from the 0.5 threshold</div>
+        <div className="sub">{t("cmp.conf.sub")}</div>
       </div>
       <div className="metric">
-        <div className="label"><span className={`ico-badge ${weak ? "amber" : "green"}`}><Icon name="shield" size={15} /></span>Platform reliability <InfoTip term="reliability" /></div>
+        <div className="label"><span className={`ico-badge ${weak ? "amber" : "green"}`}><Icon name="shield" size={15} /></span>{t("cmp.platrel")} <InfoTip term="reliability" /></div>
         <div className="value">{relPct}%</div>
-        <div className="sub">{source ? `ROC-AUC on ${source}` : "overall ROC-AUC"}{weak ? " · low, interpret with caution" : ""}</div>
+        <div className="sub">{source ? t("cmp.rel.on", source) : t("cmp.rel.overall")}{weak ? t("cmp.rel.weak") : ""}</div>
       </div>
     </>
   );
 }
 
 export function SummaryBox({ factors }: { factors: Factor[] }) {
+  const { t, lang } = useT();
   const up = factors.filter((f) => f.direction === "up");
   const down = factors.filter((f) => f.direction === "down");
   return (
     <div className="card summary-card">
-      <div className="section-title"><Icon name="list" /> Summary</div>
+      <div className="section-title"><Icon name="list" /> {t("cmp.summary")}</div>
       <div className="summary-cols">
         <div>
-          <div className="sum-head up"><Icon name="up" size={15} /> What&apos;s helping</div>
-          {up.length ? up.map((f) => <div className="sum-item" key={f.feature}>{pretty(f)}</div>) : <div className="sum-item muted">—</div>}
+          <div className="sum-head up"><Icon name="up" size={15} /> {t("cmp.helping")}</div>
+          {up.length ? up.map((f) => <div className="sum-item" key={f.feature}>{pretty(lang, f)}</div>) : <div className="sum-item muted">—</div>}
         </div>
         <div>
-          <div className="sum-head down"><Icon name="down" size={15} /> What&apos;s holding it back</div>
-          {down.length ? down.map((f) => <div className="sum-item" key={f.feature}>{pretty(f)}</div>) : <div className="sum-item muted">—</div>}
+          <div className="sum-head down"><Icon name="down" size={15} /> {t("cmp.holding")}</div>
+          {down.length ? down.map((f) => <div className="sum-item" key={f.feature}>{pretty(lang, f)}</div>) : <div className="sum-item muted">—</div>}
         </div>
       </div>
     </div>
@@ -133,19 +146,20 @@ export function SummaryBox({ factors }: { factors: Factor[] }) {
 }
 
 export function FactorBars({ factors }: { factors: Factor[] }) {
+  const { t, lang } = useT();
   const max = Math.max(...factors.map((f) => Math.abs(f.contribution)), 0.0001);
   const sorted = [...factors].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
   return (
     <div className="card">
-      <div className="section-title"><Icon name="chart" /> Why — what drives the score <InfoTip term="factors" /></div>
+      <div className="section-title"><Icon name="chart" /> {t("cmp.why")} <InfoTip term="factors" /></div>
       <div className="ibars">
         {sorted.map((f) => {
           const ratio = Math.abs(f.contribution) / max;
           const up = f.direction === "up";
-          const tag = up ? (ratio >= 0.6 ? "strong" : ratio >= 0.3 ? "medium" : "minor") : "hurts";
+          const tag = up ? (ratio >= 0.6 ? t("cmp.tag.strong") : ratio >= 0.3 ? t("cmp.tag.medium") : t("cmp.tag.minor")) : t("cmp.tag.hurts");
           return (
             <div className="ibar-row" key={f.feature}>
-              <span className="ibar-name">{pretty(f)}</span>
+              <span className="ibar-name">{pretty(lang, f)}</span>
               <div className="ibar-track"><div className={`ibar-fill ${f.direction}`} style={{ width: `${Math.max(5, ratio * 100)}%` }} /></div>
               <span className={`ibar-tag ${f.direction}`}>{up ? "▲" : "▼"} {tag}</span>
             </div>
@@ -153,19 +167,20 @@ export function FactorBars({ factors }: { factors: Factor[] }) {
         })}
       </div>
       <div className="ibar-legend">
-        <span><span className="dot up" />pushes viral</span>
-        <span><span className="dot down" />holds it back</span>
-        <span className="ibar-hint">Longer bar = bigger impact</span>
+        <span><span className="dot up" />{t("cmp.leg.up")}</span>
+        <span><span className="dot down" />{t("cmp.leg.down")}</span>
+        <span className="ibar-hint">{t("cmp.leg.hint")}</span>
       </div>
     </div>
   );
 }
 
 export function Suggestions({ items }: { items: string[] }) {
+  const { t } = useT();
   if (!items?.length) return null;
   return (
     <div className="card">
-      <div className="section-title"><Icon name="bulb" /> Suggestions</div>
+      <div className="section-title"><Icon name="bulb" /> {t("cmp.suggestions")}</div>
       <ul className="sugg-list">
         {items.map((s, i) => (
           <li key={i}><span className="sugg-ico"><Icon name="check" size={16} /></span><span>{s}</span></li>
@@ -176,9 +191,13 @@ export function Suggestions({ items }: { items: string[] }) {
 }
 
 const BARRIER_PRIORITY = ["range_anxiety", "charging_infrastructure", "price_incentives", "battery_degradation", "safety_fire", "maintenance_cost"];
-const STATUS_TEXT: Record<string, string> = { addressed: "Addressed", mentioned: "Mentioned", not_mentioned: "Not mentioned" };
 
 export function BarrierRadar({ data, loading, error }: { data: BarrierResponse | null; loading: boolean; error: string | null }) {
+  const { t } = useT();
+  const barLabel = (key: string, fallback: string) => {
+    const s = t(`bar.key.${key}`);
+    return s === `bar.key.${key}` ? fallback : s;
+  };
   const focus = data
     ? data.barriers
         .filter((b) => b.status !== "addressed")
@@ -187,22 +206,22 @@ export function BarrierRadar({ data, loading, error }: { data: BarrierResponse |
     : [];
   return (
     <div className="card">
-      <div className="section-title"><Icon name="shield" /> EV barrier radar <InfoTip term="barriers" /></div>
-      {loading && <div className="loading-row"><span className="spinner" />Checking the six EV-adoption barriers…</div>}
-      {error && !loading && <div className="warn">Barrier analysis couldn&apos;t run: {error}</div>}
+      <div className="section-title"><Icon name="shield" /> {t("bar.title")} <InfoTip term="barriers" /></div>
+      {loading && <div className="loading-row"><span className="spinner" />{t("bar.loading")}</div>}
+      {error && !loading && <div className="warn">{t("bar.err", error)}</div>}
       {data && !loading && (
         <>
           <div className="barrier-list">
             {data.barriers.map((b) => (
               <div className="barrier-row" key={b.key}>
-                <span className="barrier-name">{b.label}</span>
-                <span className={`barrier-badge ${b.status}`}>{STATUS_TEXT[b.status] ?? b.status}</span>
+                <span className="barrier-name">{barLabel(b.key, b.label)}</span>
+                <span className={`barrier-badge ${b.status}`}>{t(`bar.status.${b.status}`)}</span>
               </div>
             ))}
           </div>
           {focus.length > 0 && (
             <div className="barrier-focus">
-              <Icon name="bulb" size={15} /> To improve this post, address: <strong>{focus.map((f) => f.label).join(", ")}</strong>
+              <Icon name="bulb" size={15} /> {t("bar.focus")} <strong>{focus.map((f) => barLabel(f.key, f.label)).join(", ")}</strong>
             </div>
           )}
         </>
@@ -211,26 +230,25 @@ export function BarrierRadar({ data, loading, error }: { data: BarrierResponse |
   );
 }
 
-const RISK_TEXT: Record<string, string> = { low: "Low risk", medium: "Medium risk", high: "High risk" };
-
 export function GreenwashCard({ data, loading, error }: { data: GreenwashResponse | null; loading: boolean; error: string | null }) {
+  const { t } = useT();
   return (
     <div className="card">
-      <div className="section-title"><Icon name="leaf" /> Greenwashing risk <InfoTip term="greenwashing" /></div>
-      {loading && <div className="loading-row"><span className="spinner" />Checking claims vs evidence…</div>}
-      {error && !loading && <div className="warn">Greenwashing check couldn&apos;t run: {error}</div>}
+      <div className="section-title"><Icon name="leaf" /> {t("gw.title")} <InfoTip term="greenwashing" /></div>
+      {loading && <div className="loading-row"><span className="spinner" />{t("gw.loading")}</div>}
+      {error && !loading && <div className="warn">{t("gw.err", error)}</div>}
       {data && !loading && (
         <>
-          <span className={`risk-badge ${data.risk}`}>{RISK_TEXT[data.risk] ?? data.risk}</span>
+          <span className={`risk-badge ${data.risk}`}>{t(`gw.risk.${data.risk}`)}</span>
           {data.note && <p className="gw-note">{data.note}</p>}
           <div className="gw-cols">
             <div>
-              <div className="gw-head">Green claims ({data.claims.length})</div>
-              {data.claims.length ? <ul className="gw-list">{data.claims.map((c, i) => <li key={i}>{c}</li>)}</ul> : <div className="gw-empty">None detected.</div>}
+              <div className="gw-head">{t("gw.claims", data.claims.length)}</div>
+              {data.claims.length ? <ul className="gw-list">{data.claims.map((c, i) => <li key={i}>{c}</li>)}</ul> : <div className="gw-empty">{t("gw.none")}</div>}
             </div>
             <div>
-              <div className="gw-head">Supporting evidence ({data.evidence.length})</div>
-              {data.evidence.length ? <ul className="gw-list">{data.evidence.map((e, i) => <li key={i}>{e}</li>)}</ul> : <div className="gw-empty">None detected.</div>}
+              <div className="gw-head">{t("gw.evidence", data.evidence.length)}</div>
+              {data.evidence.length ? <ul className="gw-list">{data.evidence.map((e, i) => <li key={i}>{e}</li>)}</ul> : <div className="gw-empty">{t("gw.none")}</div>}
             </div>
           </div>
         </>
@@ -239,17 +257,16 @@ export function GreenwashCard({ data, loading, error }: { data: GreenwashRespons
   );
 }
 
-const REACTION_TEXT: Record<string, string> = { positive: "Positive", neutral: "Neutral", skeptical: "Skeptical", hostile: "Hostile" };
-
 export function SentimentCard({ data, loading, error }: { data: SentimentResponse | null; loading: boolean; error: string | null }) {
+  const { t } = useT();
   return (
     <div className="card">
-      <div className="section-title"><Icon name="chat" /> Likely audience reaction <InfoTip term="reaction" /></div>
-      {loading && <div className="loading-row"><span className="spinner" />Predicting how the audience would react…</div>}
-      {error && !loading && <div className="warn">Reaction analysis couldn&apos;t run: {error}</div>}
+      <div className="section-title"><Icon name="chat" /> {t("se.title")} <InfoTip term="reaction" /></div>
+      {loading && <div className="loading-row"><span className="spinner" />{t("se.loading")}</div>}
+      {error && !loading && <div className="warn">{t("se.err", error)}</div>}
       {data && !loading && (
         <>
-          <span className={`reaction-badge ${data.reaction}`}>{REACTION_TEXT[data.reaction] ?? data.reaction}</span>
+          <span className={`reaction-badge ${data.reaction}`}>{t(`se.${data.reaction}`)}</span>
           {data.note && <p className="gw-note">{data.note}</p>}
         </>
       )}
@@ -267,11 +284,12 @@ export function AnalysisDetail({ post, scoresLine, source, prediction, barriers,
   sentiment?: SentimentResponse | null;
   report?: string | null;
 }) {
+  const { t } = useT();
   return (
     <>
       {(post || scoresLine) && (
         <div className="preview" style={{ marginBottom: "1.25rem" }}>
-          {post && <><div className="lbl">Analyzed post</div><div className="txt">{post}</div></>}
+          {post && <><div className="lbl">{t("detail.analyzedpost")}</div><div className="txt">{post}</div></>}
           {scoresLine && <div className="tags">{scoresLine}</div>}
         </div>
       )}
@@ -297,17 +315,18 @@ export function AnalysisDetail({ post, scoresLine, source, prediction, barriers,
 }
 
 export function ReportPanel({ report, loading, error }: { report: string | null; loading: boolean; error: string | null }) {
+  const { t } = useT();
   const body = report ? report.replace(/^\s*#{0,6}\s*report\s*\r?\n+/i, "").trim() : "";
   return (
     <div className="card">
-      <div className="section-title"><Icon name="file" /> AI report</div>
+      <div className="section-title"><Icon name="file" /> {t("rep.title")}</div>
       {loading && (
         <div className="skeleton">
           <span style={{ width: "90%" }} /><span style={{ width: "97%" }} /><span style={{ width: "80%" }} /><span style={{ width: "60%" }} />
-          <div className="loading-row" style={{ marginTop: 6 }}><span className="spinner" />Writing the report…</div>
+          <div className="loading-row" style={{ marginTop: 6 }}><span className="spinner" />{t("rep.loading")}</div>
         </div>
       )}
-      {error && !loading && <div className="warn">Report couldn&apos;t be generated: {error}</div>}
+      {error && !loading && <div className="warn">{t("rep.err", error)}</div>}
       {report && !loading && (
         <div className="report-text markdown"><ReactMarkdown>{body}</ReactMarkdown></div>
       )}

@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Icon } from "./components";
 import ExampleShowcase from "./ExampleShowcase";
+import { useT } from "@/lib/i18n";
 
-function HeroPreview() {
+function HeroPreview({ t }: { t: (k: string) => string }) {
   const C = 2 * Math.PI * 34;
   const off = C * (1 - 0.83);
   return (
@@ -14,63 +17,63 @@ function HeroPreview() {
           <text x="40" y="47" textAnchor="middle" fontSize="19" fontWeight="700" fill="#0f5f2e" fontFamily="var(--font-head)">83%</text>
         </svg>
         <div>
-          <div className="hp-label">Viral probability</div>
-          <span className="hp-badge">viral-likely</span>
-          <div className="hp-net">Best on YouTube</div>
+          <div className="hp-label">{t("cmp.viralprob")}</div>
+          <span className="hp-badge">{t("lbl.viral")}</span>
+          <div className="hp-net">{t("hist.best.yt")}</div>
         </div>
       </div>
       <div className="hp-bars">
-        <div className="hp-row"><span>Channel audience</span><i style={{ width: "92%" }} /></div>
-        <div className="hp-row"><span>Post content</span><i style={{ width: "62%" }} /></div>
-        <div className="hp-row"><span>Urgency</span><i className="amber" style={{ width: "30%" }} /></div>
+        <div className="hp-row"><span>{t("hp.audience")}</span><i style={{ width: "92%" }} /></div>
+        <div className="hp-row"><span>{t("hp.content")}</span><i style={{ width: "62%" }} /></div>
+        <div className="hp-row"><span>{t("hp.urgency")}</span><i className="amber" style={{ width: "30%" }} /></div>
       </div>
     </div>
   );
 }
 
 export default function Landing() {
+  const { t } = useT();
   return (
     <>
       <section className="hero-band">
         <div className="hero-inner">
           <div className="hero-text">
-            <span className="hero-badge">Explainable AI · EN / VI · trained on 600k+ posts</span>
-            <h1 className="hero-title">Will your EV ad <span className="hl">go viral?</span> Find out before you post.</h1>
-            <p className="hero-sub">Paste your post and get an instant, explainable review — a viral score for YouTube, X and Reddit, why it&apos;ll work, and how to make it better.</p>
+            <span className="hero-badge">{t("home.badge")}</span>
+            <h1 className="hero-title">{t("home.title.a")}<span className="hl">{t("home.title.hl")}</span>{t("home.title.b")}</h1>
+            <p className="hero-sub">{t("home.sub")}</p>
             <div className="hero-cta">
-              <Link href="/analyze" className="cta-btn">Get my review</Link>
-              <a href="#examples" className="cta-btn ghost">See example reports</a>
+              <Link href="/analyze" className="cta-btn">{t("home.cta.primary")}</Link>
+              <a href="#examples" className="cta-btn ghost">{t("home.cta.secondary")}</a>
             </div>
           </div>
-          <div className="hero-art"><HeroPreview /></div>
+          <div className="hero-art"><HeroPreview t={t} /></div>
         </div>
       </section>
 
       <p className="lead">
-        The AI analytics platform for <strong>electric-vehicle advertising</strong> — predict, explain and improve your
-        posts before you publish.
+        {t("home.lead.a")}<strong>{t("home.lead.strong")}</strong>{t("home.lead.b")}
       </p>
       <div className="stat-band">
-        <div className="stat"><div className="stat-num">600k+</div><div className="stat-lbl">posts analyzed</div></div>
-        <div className="stat"><div className="stat-num">3</div><div className="stat-lbl">networks compared</div></div>
-        <div className="stat"><div className="stat-num">EN · VI</div><div className="stat-lbl">bilingual reports</div></div>
-        <div className="stat"><div className="stat-num">100%</div><div className="stat-lbl">explainable AI</div></div>
+        <div className="stat"><div className="stat-num">600k+</div><div className="stat-lbl">{t("home.stat.posts")}</div></div>
+        <div className="stat"><div className="stat-num">3</div><div className="stat-lbl">{t("home.stat.networks")}</div></div>
+        <div className="stat"><div className="stat-num">EN · VI</div><div className="stat-lbl">{t("home.stat.bilingual")}</div></div>
+        <div className="stat"><div className="stat-num">100%</div><div className="stat-lbl">{t("home.stat.explainable")}</div></div>
       </div>
 
-      <div className="eyebrow">How it works</div>
+      <div className="eyebrow">{t("home.how")}</div>
       <div className="steps">
-        <div className="step"><div className="step-head"><span className="ico"><Icon name="file" size={20} /></span><div className="st-title">Paste your post</div></div><div className="st-sub">Add the text and your audience on each network.</div></div>
-        <div className="step"><div className="step-head"><span className="ico"><Icon name="chart" size={20} /></span><div className="st-title">AI compares networks</div></div><div className="st-sub">A viral score on YouTube, X and Reddit, with the factors behind it.</div></div>
-        <div className="step"><div className="step-head"><span className="ico"><Icon name="bulb" size={20} /></span><div className="st-title">Get your report</div></div><div className="st-sub">Concrete, actionable tips — in English or Vietnamese.</div></div>
+        <div className="step"><div className="step-head"><span className="ico"><Icon name="file" size={20} /></span><div className="st-title">{t("home.step1.t")}</div></div><div className="st-sub">{t("home.step1.s")}</div></div>
+        <div className="step"><div className="step-head"><span className="ico"><Icon name="chart" size={20} /></span><div className="st-title">{t("home.step2.t")}</div></div><div className="st-sub">{t("home.step2.s")}</div></div>
+        <div className="step"><div className="step-head"><span className="ico"><Icon name="bulb" size={20} /></span><div className="st-title">{t("home.step3.t")}</div></div><div className="st-sub">{t("home.step3.s")}</div></div>
       </div>
 
-      <div className="eyebrow" id="examples">Example reports</div>
+      <div className="eyebrow" id="examples">{t("home.examples")}</div>
       <ExampleShowcase />
 
       <div className="cta-band">
-        <h2>Ready to see how your post performs?</h2>
-        <p>Get an instant, explainable review across every network.</p>
-        <Link href="/analyze" className="cta-btn">Get my review</Link>
+        <h2>{t("home.ctaband.title")}</h2>
+        <p>{t("home.ctaband.sub")}</p>
+        <Link href="/analyze" className="cta-btn">{t("home.cta.primary")}</Link>
       </div>
     </>
   );

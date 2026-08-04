@@ -5,11 +5,12 @@ import { getHistory, deleteHistory, clearHistory, HistoryItem } from "@/lib/hist
 import { Source } from "@/lib/types";
 import { modelName } from "@/lib/config";
 import { AnalysisDetail, Icon } from "../components";
+import { useT, TFunc } from "@/lib/i18n";
 
 const NAMES: Record<string, string> = { youtube: "YouTube", x: "X", reddit: "Reddit" };
 const pct = (v?: number) => (v == null ? "—" : `${Math.round(v * 100)}%`);
 
-function TrendChart({ items }: { items: HistoryItem[] }) {
+function TrendChart({ items, t }: { items: HistoryItem[]; t: TFunc }) {
   const data = [...items].sort((a, b) => a.ts - b.ts);
   if (data.length < 2) return null;
   const W = 600, H = 150, padX = 40, padY = 16, plotW = W - 2 * padX, plotH = H - 2 * padY - 12;
@@ -19,7 +20,7 @@ function TrendChart({ items }: { items: HistoryItem[] }) {
   const pts = data.map((d, i) => `${x(i)},${y(d.best.score)}`).join(" ");
   return (
     <div className="card" style={{ marginBottom: "1.25rem" }}>
-      <div className="section-title"><Icon name="chart" /> Score trend</div>
+      <div className="section-title"><Icon name="chart" /> {t("hist.trend")}</div>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Trend of viral scores over your past analyses">
         <line x1={padX} y1={y(1)} x2={W - padX} y2={y(1)} stroke="var(--border)" />
         <line x1={padX} y1={y(0.5)} x2={W - padX} y2={y(0.5)} stroke="var(--border)" strokeDasharray="4 4" />
@@ -30,7 +31,7 @@ function TrendChart({ items }: { items: HistoryItem[] }) {
         <polyline points={pts} fill="none" stroke="#15803d" strokeWidth="2" />
         {data.map((d, i) => <circle key={i} cx={x(i)} cy={y(d.best.score)} r="4" fill={d.best.score >= 0.5 ? "#15803d" : "#e0a03a"} />)}
       </svg>
-      <div className="hist-meta">Best-network viral score across your {n} analyses (oldest → newest).</div>
+      <div className="hist-meta">{t("hist.trend.sub", n)}</div>
     </div>
   );
 }
@@ -43,6 +44,7 @@ export default function History() {
   const [openItem, setOpenItem] = useState<HistoryItem | null>(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
+  const { t } = useT();
 
   useEffect(() => { setItems(getHistory()); }, []);
   useEffect(() => { setPage(1); }, [query, filter, sort]);
@@ -56,7 +58,7 @@ export default function History() {
   }, [items, query, filter, sort]);
 
   function onDelete(id: string) { deleteHistory(id); setItems(getHistory()); }
-  function onClear() { if (confirm("Delete all saved analyses?")) { clearHistory(); setItems([]); } }
+  function onClear() { if (confirm(t("hist.confirm"))) { clearHistory(); setItems([]); } }
 
   function exportCsv() {
     const head = ["date", "title", "text", "best_network", "best_score", "youtube", "x", "reddit"];
@@ -79,35 +81,35 @@ export default function History() {
   const pageItems = filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
 
   const scoresLine = (i: HistoryItem) =>
-    `YouTube ${pct(i.scores.youtube)} · X ${pct(i.scores.x)} · Reddit ${pct(i.scores.reddit)} · Best: ${NAMES[i.best.source]} · Model: ${modelName(i.model)}`;
+    t("hist.scoresline", pct(i.scores.youtube), pct(i.scores.x), pct(i.scores.reddit), NAMES[i.best.source], modelName(i.model));
 
   return (
     <>
-      <h1 className="page-title">History</h1>
-      <p className="page-subtitle">Your past analyses, saved on this device. Search, filter, sort and export.</p>
+      <h1 className="page-title">{t("hist.title")}</h1>
+      <p className="page-subtitle">{t("hist.subtitle")}</p>
 
       {items.length === 0 ? (
-        <div className="card"><div className="placeholder">No analyses yet. Run one from the Analyze page and it&apos;ll appear here.</div></div>
+        <div className="card"><div className="placeholder">{t("hist.empty")}</div></div>
       ) : (
         <>
           <div className="hist-controls">
-            <input placeholder="Search name or text…" value={query} onChange={(e) => setQuery(e.target.value)} style={{ maxWidth: 260 }} />
+            <input placeholder={t("hist.search")} value={query} onChange={(e) => setQuery(e.target.value)} style={{ maxWidth: 260 }} />
             <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ maxWidth: 170 }}>
-              <option value="all">All networks</option>
-              <option value="youtube">Best on YouTube</option>
-              <option value="x">Best on X</option>
-              <option value="reddit">Best on Reddit</option>
+              <option value="all">{t("hist.all")}</option>
+              <option value="youtube">{t("hist.best.yt")}</option>
+              <option value="x">{t("hist.best.x")}</option>
+              <option value="reddit">{t("hist.best.rd")}</option>
             </select>
             <select value={sort} onChange={(e) => setSort(e.target.value as "date" | "score")} style={{ maxWidth: 170 }}>
-              <option value="date">Sort: newest</option>
-              <option value="score">Sort: highest score</option>
+              <option value="date">{t("hist.sort.new")}</option>
+              <option value="score">{t("hist.sort.score")}</option>
             </select>
             <div style={{ flex: 1 }} />
-            <button className="btn-ghost" onClick={exportCsv}>Export CSV</button>
-            <button className="btn-ghost" onClick={onClear}>Clear all</button>
+            <button className="btn-ghost" onClick={exportCsv}>{t("hist.export")}</button>
+            <button className="btn-ghost" onClick={onClear}>{t("hist.clear")}</button>
           </div>
 
-          <TrendChart items={items} />
+          <TrendChart items={items} t={t} />
 
           <div className="stack">
             {pageItems.map((i) => (
@@ -118,12 +120,12 @@ export default function History() {
                     {i.title && <div className="hist-title">{i.title}</div>}
                     <div className="hist-text">{i.text}</div>
                     <div className="hist-meta">
-                      Best: {NAMES[i.best.source]} · YouTube {pct(i.scores.youtube)} · X {pct(i.scores.x)} · Reddit {pct(i.scores.reddit)} · {modelName(i.model)} · {new Date(i.ts).toLocaleString()}
+                      {t("hist.best")} {NAMES[i.best.source]} · YouTube {pct(i.scores.youtube)} · X {pct(i.scores.x)} · Reddit {pct(i.scores.reddit)} · {modelName(i.model)} · {new Date(i.ts).toLocaleString()}
                     </div>
                   </div>
                   <div className="hist-actions">
-                    {i.prediction && <button className="link-x" onClick={() => setOpenItem(i)}>view full analysis</button>}
-                    <button className="link-x" onClick={() => onDelete(i.id)}>delete</button>
+                    {i.prediction && <button className="link-x" onClick={() => setOpenItem(i)}>{t("hist.viewfull")}</button>}
+                    <button className="link-x" onClick={() => onDelete(i.id)}>{t("hist.delete")}</button>
                   </div>
                 </div>
               </div>
@@ -132,9 +134,9 @@ export default function History() {
 
           {totalPages > 1 && (
             <div className="pager">
-              <button className="btn-ghost" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={pageSafe <= 1}>← Previous</button>
-              <span className="pager-info">Page {pageSafe} of {totalPages}</span>
-              <button className="btn-ghost" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={pageSafe >= totalPages}>Next →</button>
+              <button className="btn-ghost" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={pageSafe <= 1}>{t("hist.prev")}</button>
+              <span className="pager-info">{t("hist.page", pageSafe, totalPages)}</span>
+              <button className="btn-ghost" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={pageSafe >= totalPages}>{t("hist.next")}</button>
             </div>
           )}
         </>
@@ -144,8 +146,8 @@ export default function History() {
         <div className="modal-overlay" onClick={() => setOpenItem(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
-              <span className="modal-title">{openItem.title || "Analysis"}</span>
-              <button className="modal-close" onClick={() => setOpenItem(null)} aria-label="Close">✕</button>
+              <span className="modal-title">{openItem.title || t("hist.analysis")}</span>
+              <button className="modal-close" onClick={() => setOpenItem(null)} aria-label={t("sc.close")}>✕</button>
             </div>
             <AnalysisDetail
               post={openItem.text}

@@ -3,22 +3,31 @@
 import { useEffect, useRef, useState } from "react";
 import { predict, getReport, getBarriers, getGreenwashing, getSentiment } from "@/lib/api";
 import { Prediction, Source, Lang, BarrierResponse, GreenwashResponse, SentimentResponse } from "@/lib/types";
-import { TEMPLATES, MODELS, DEFAULT_MODEL_ID, modelName } from "@/lib/config";
+import { MODELS, DEFAULT_MODEL_ID, modelName } from "@/lib/config";
 import { addHistory, updateHistory } from "@/lib/history";
 import { useLang } from "../LangContext";
+import { useT } from "@/lib/i18n";
 import { InfoTip, NET_NAMES, NetworkCompare, ScoreGauge, MetaGrid, SummaryBox, FactorBars, Suggestions, ReportPanel, BarrierRadar, GreenwashCard, SentimentCard } from "../components";
 
 interface NetResult { source: Source; audience: number | null; prediction: Prediction; }
 const NETWORKS: Source[] = ["youtube", "x", "reddit"];
 
-const EXAMPLES: { label: string; text: string }[] = [
-  { label: "Range claim", text: "Our new electric SUV delivers 510 km of range on a single charge — book your test drive today!" },
-  { label: "Charging network", text: "Worried about charging? Over 3,000 fast-charging stations are now available nationwide." },
-  { label: "Price + incentive", text: "Going electric has never been cheaper — government incentives cut up to $7,500 off this month." },
+const EXAMPLE_KEYS = [
+  { label: "ex.range", text: "ex.range.txt" },
+  { label: "ex.charging", text: "ex.charging.txt" },
+  { label: "ex.price", text: "ex.price.txt" },
+];
+const TEMPLATE_KEYS = [
+  { role: "tmpl.proof.role", text: "tmpl.proof.text" },
+  { role: "tmpl.objection.role", text: "tmpl.objection.text" },
+  { role: "tmpl.social.role", text: "tmpl.social.text" },
+  { role: "tmpl.hook.role", text: "tmpl.hook.text" },
+  { role: "tmpl.cta.role", text: "tmpl.cta.text" },
 ];
 
 export default function Analyze() {
   const { lang } = useLang();
+  const { t } = useT();
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [model, setModel] = useState(DEFAULT_MODEL_ID);
@@ -165,7 +174,7 @@ export default function Analyze() {
       fetchGreenwash(text);
       fetchSentiment(text);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof Error ? e.message : t("an.err"));
       setLoading(false);
     }
   }
@@ -184,49 +193,49 @@ export default function Analyze() {
 
   return (
     <>
-      <h1 className="page-title">Get your EV campaign review</h1>
-      <p className="input-cue">Paste your post and your audience per network — we compare YouTube, X and Reddit, explain the score and write an actionable report. <strong>Fill in the fields below to start.</strong></p>
+      <h1 className="page-title">{t("an.title")}</h1>
+      <p className="input-cue">{t("an.cue.a")}<strong>{t("an.cue.strong")}</strong></p>
 
       <div className="card">
         <div style={{ marginBottom: 18 }}>
-          <label htmlFor="title">Campaign name</label>
-          <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Q2 EV SUV launch" />
-          <div className="help">Give this analysis a name to find it easily in your History.</div>
+          <label htmlFor="title">{t("an.campaign")}</label>
+          <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t("an.campaign.ph")} />
+          <div className="help">{t("an.campaign.help")}</div>
         </div>
         <div className="input-grid">
           <div>
-            <label htmlFor="post">Post</label>
+            <label htmlFor="post">{t("an.post")}</label>
             <textarea ref={taRef} id="post" value={text} onChange={(e) => setText(e.target.value)}
-              placeholder="e.g. New electric SUV, 510 km range on a single charge — book your test drive today!" />
+              placeholder={t("an.post.ph")} />
             <div className="examples">
-              Try an example:
-              {EXAMPLES.map((ex) => (
-                <button key={ex.label} className="example-chip" onClick={() => setText(ex.text)}>{ex.label}</button>
+              {t("an.try")}
+              {EXAMPLE_KEYS.map((ex) => (
+                <button key={ex.label} className="example-chip" onClick={() => setText(t(ex.text))}>{t(ex.label)}</button>
               ))}
             </div>
             <div className="templates">
-              Add a template:
-              {TEMPLATES.map((t) => (
-                <button key={t.role} className="tmpl-chip" onClick={() => addTemplate(t.text)} title={t.text}>+ {t.role}</button>
+              {t("an.addtmpl")}
+              {TEMPLATE_KEYS.map((tm) => (
+                <button key={tm.role} className="tmpl-chip" onClick={() => addTemplate(t(tm.text))} title={t(tm.text)}>+ {t(tm.role)}</button>
               ))}
             </div>
           </div>
           <div>
-            <div className="aud-label">Your audience per network <InfoTip term="audience" /> <span className="muted">(optional)</span></div>
+            <div className="aud-label">{t("an.aud")} <InfoTip term="audience" /> <span className="muted">{t("an.optional")}</span></div>
             <div className="aud-stack">
-              <div><label>YouTube subscribers</label><input value={audYt} onChange={(e) => setAudYt(e.target.value)} placeholder="e.g. 50000" inputMode="numeric" /></div>
-              <div><label>X followers</label><input value={audX} onChange={(e) => setAudX(e.target.value)} placeholder="e.g. 12000" inputMode="numeric" /></div>
-              <div><label>Reddit members</label><input value={audRd} onChange={(e) => setAudRd(e.target.value)} placeholder="e.g. 340000" inputMode="numeric" /></div>
+              <div><label>{t("an.aud.yt")}</label><input value={audYt} onChange={(e) => setAudYt(e.target.value)} placeholder="e.g. 50000" inputMode="numeric" /></div>
+              <div><label>{t("an.aud.x")}</label><input value={audX} onChange={(e) => setAudX(e.target.value)} placeholder="e.g. 12000" inputMode="numeric" /></div>
+              <div><label>{t("an.aud.rd")}</label><input value={audRd} onChange={(e) => setAudRd(e.target.value)} placeholder="e.g. 340000" inputMode="numeric" /></div>
             </div>
             <div style={{ marginTop: 16 }}>
-              <label htmlFor="model">Model</label>
+              <label htmlFor="model">{t("an.model")}</label>
               <select id="model" value={model} onChange={(e) => setModel(e.target.value)}>
                 {MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
-              <div className="help">{MODELS.find((m) => m.id === model)?.blurb}</div>
+              <div className="help">{t(`model.${model}.blurb`)}</div>
             </div>
             <button className="btn btn-block" onClick={onAnalyze} disabled={loading || !text.trim()}>
-              {loading ? "Analyzing…" : "Analyze"}
+              {loading ? t("an.analyzing") : t("an.analyze")}
             </button>
           </div>
         </div>
@@ -236,9 +245,9 @@ export default function Analyze() {
 
       {analyzedText && !error && (
         <div className="preview" style={{ marginTop: "1.25rem" }}>
-          <div className="lbl">Analyzing</div>
+          <div className="lbl">{t("an.preview.lbl")}</div>
           <div className="txt">{analyzedText}</div>
-          <div className="tags">comparing YouTube, X and Reddit · model: {modelName(model)} · report in {lang.toUpperCase()}</div>
+          <div className="tags">{t("an.preview.tags", modelName(model), lang.toUpperCase())}</div>
         </div>
       )}
 
@@ -247,7 +256,7 @@ export default function Analyze() {
           <NetworkCompare results={results} selected={selected} onSelect={selectNetwork} />
           {sel && (
             <>
-              <div className="eyebrow">Details — {NET_NAMES[selected]}</div>
+              <div className="eyebrow">{t("an.details", NET_NAMES[selected])}</div>
               <div className="metrics">
                 <ScoreGauge prediction={sel.prediction} />
                 <MetaGrid prediction={sel.prediction} source={selected} />
