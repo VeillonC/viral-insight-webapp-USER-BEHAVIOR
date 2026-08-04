@@ -25,7 +25,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span>EV campaign analyser — AI &amp; Big Data for sustainable marketing</span>
               <span>
                 <Link href="/insights">Insights</Link>
-                <Link href="/glossary">Glossary</Link>
                 <a href="https://github.com/VeillonC/viral-insight-webapp-USER-BEHAVIOR" target="_blank" rel="noreferrer">GitHub</a>
               </span>
             </div>

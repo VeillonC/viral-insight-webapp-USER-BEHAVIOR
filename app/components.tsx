@@ -187,7 +187,7 @@ export function BarrierRadar({ data, loading, error }: { data: BarrierResponse |
     : [];
   return (
     <div className="card">
-      <div className="section-title"><Icon name="shield" /> EV barrier radar</div>
+      <div className="section-title"><Icon name="shield" /> EV barrier radar <InfoTip term="barriers" /></div>
       {loading && <div className="loading-row"><span className="spinner" />Checking the six EV-adoption barriers…</div>}
       {error && !loading && <div className="warn">Barrier analysis couldn&apos;t run: {error}</div>}
       {data && !loading && (
@@ -216,7 +216,7 @@ const RISK_TEXT: Record<string, string> = { low: "Low risk", medium: "Medium ris
 export function GreenwashCard({ data, loading, error }: { data: GreenwashResponse | null; loading: boolean; error: string | null }) {
   return (
     <div className="card">
-      <div className="section-title"><Icon name="leaf" /> Greenwashing risk</div>
+      <div className="section-title"><Icon name="leaf" /> Greenwashing risk <InfoTip term="greenwashing" /></div>
       {loading && <div className="loading-row"><span className="spinner" />Checking claims vs evidence…</div>}
       {error && !loading && <div className="warn">Greenwashing check couldn&apos;t run: {error}</div>}
       {data && !loading && (
@@ -244,7 +244,7 @@ const REACTION_TEXT: Record<string, string> = { positive: "Positive", neutral: "
 export function SentimentCard({ data, loading, error }: { data: SentimentResponse | null; loading: boolean; error: string | null }) {
   return (
     <div className="card">
-      <div className="section-title"><Icon name="chat" /> Likely audience reaction</div>
+      <div className="section-title"><Icon name="chat" /> Likely audience reaction <InfoTip term="reaction" /></div>
       {loading && <div className="loading-row"><span className="spinner" />Predicting how the audience would react…</div>}
       {error && !loading && <div className="warn">Reaction analysis couldn&apos;t run: {error}</div>}
       {data && !loading && (

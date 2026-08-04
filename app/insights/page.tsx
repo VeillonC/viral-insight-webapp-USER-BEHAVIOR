@@ -1,3 +1,5 @@
+import { MODELS } from "@/lib/config";
+
 export default function Insights() {
   return (
     <>
@@ -13,28 +15,24 @@ export default function Insights() {
       </div>
 
       <div className="eyebrow">Model performance</div>
-      <div className="card">
-        <table className="perf-table">
-          <thead>
-            <tr><th>Platform</th><th>ROC-AUC</th><th>Reliability</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>YouTube</td><td>0.92</td><td>High</td></tr>
-            <tr><td>Reddit</td><td>0.76</td><td>Good</td></tr>
-            <tr><td>X</td><td>0.72</td><td>Fair — small sample</td></tr>
-            <tr><td><strong>Overall</strong></td><td><strong>0.84</strong></td><td>—</td></tr>
-          </tbody>
-        </table>
-        <p className="help" style={{ marginTop: 12 }}>ROC-AUC on the held-out test set. X has the fewest examples, so its predictions are the least reliable.</p>
-      </div>
+      {MODELS.map((m) => (
+        <div className="card" key={m.id} style={{ marginBottom: "1.25rem" }}>
+          <div className="section-title">{m.name}</div>
+          <p className="help" style={{ marginTop: 0, marginBottom: 12 }}>{m.blurb}</p>
+          <table className="perf-table">
+            <thead><tr><th>Platform</th><th>ROC-AUC</th></tr></thead>
+            <tbody>
+              <tr><td>YouTube</td><td>{m.reliability.youtube}</td></tr>
+              <tr><td>Reddit</td><td>{m.reliability.reddit}</td></tr>
+              <tr><td>X</td><td>{m.reliability.x}</td></tr>
+              <tr><td><strong>Overall</strong></td><td><strong>{m.reliability[""]}</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      ))}
+      <p className="help">ROC-AUC on the held-out test set. X has the fewest examples, so its predictions are the least reliable. More models can be added and compared here as they are trained.</p>
 
-      <div className="eyebrow">AI &amp; Big Data pipeline</div>
-      <div className="pipeline">
-        {["Crawlers", "Kafka", "Spark streaming", "Iceberg lakehouse", "ML model", "Web app"].map((s, i, arr) => (
-          <span key={s} className="pipe-node">{s}{i < arr.length - 1 && <span className="pipe-arrow">→</span>}</span>
-        ))}
-      </div>
-      <p className="help" style={{ marginTop: 10 }}>Posts are collected, streamed, cleaned and stored in a lakehouse, then used to train the model that powers this app.</p>
+      <p className="help" style={{ marginTop: 16 }}>Posts are collected, streamed, cleaned and stored in a lakehouse, then used to train the model that powers this app.</p>
     </>
   );
 }

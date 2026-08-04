@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useLang } from "./LangContext";
 
 const LINKS = [
   { href: "/analyze", label: "Analyze" },
   { href: "/variant-lab", label: "Variant lab" },
-  { href: "/insights", label: "Insights" },
   { href: "/history", label: "History" },
-  { href: "/glossary", label: "Glossary" },
+  { href: "/insights", label: "Insights" },
 ];
 
 export default function Nav() {
@@ -20,9 +20,7 @@ export default function Nav() {
       <div className="nav-inner">
         <Link href="/" className="brand">
           <span className="logo" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0c3b24" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M13 2 L4 14 h7 l-1 8 9-12 h-7 z" />
-            </svg>
+            <Image src="/logo.svg" alt="" width={60} height={60} priority />
           </span>
           <span className="brand-name">EV campaign analyser</span>
         </Link>

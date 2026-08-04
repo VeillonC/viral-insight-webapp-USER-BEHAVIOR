@@ -3,14 +3,27 @@
 // The model classifies a post as "viral-likely" when the score is at/above this.
 export const DECISION_THRESHOLD = 0.5;
 
-// Model reliability per platform (ROC-AUC from the latest evaluation).
-// Used to warn users when a prediction is less reliable (e.g. X has little data).
-export const PLATFORM_RELIABILITY: Record<string, number> = {
-  youtube: 0.92,
-  reddit: 0.76,
-  x: 0.72,
-  "": 0.84,
-};
+// Available prediction models. Add new entries here as more models are trained;
+// the analyze selector, insights page and history all read from this list.
+export interface ModelInfo {
+  id: string;
+  name: string;
+  blurb: string;
+  reliability: Record<string, number>; // ROC-AUC per platform ("" = overall)
+}
+export const MODELS: ModelInfo[] = [
+  {
+    id: "fusion-v1",
+    name: "Fusion v1",
+    blurb: "Content, audience, marketing roles and topics combined (XGBoost). Balanced default across networks.",
+    reliability: { youtube: 0.92, reddit: 0.76, x: 0.72, "": 0.84 },
+  },
+];
+export const DEFAULT_MODEL_ID = "fusion-v1";
+export const modelName = (id?: string) => MODELS.find((m) => m.id === id)?.name ?? MODELS[0].name;
+
+// Reliability of the default model, kept for the metric cards / network comparison.
+export const PLATFORM_RELIABILITY: Record<string, number> = MODELS[0].reliability;
 
 // Short explanations shown in tooltips (ℹ️) next to technical terms.
 export const GLOSSARY: Record<string, string> = {
@@ -20,6 +33,9 @@ export const GLOSSARY: Record<string, string> = {
   reliability: "How well the model performs on this platform (ROC-AUC on the test set). Lower = take the result with a pinch of salt.",
   factors: "The features that pushed the score up (green) or down (amber), ranked by impact (SHAP).",
   audience: "Follower / subscriber count of the account posting. Bigger audience usually means more reach.",
+  barriers: "The six common reasons people hesitate to buy an EV. A strong post addresses the most relevant ones.",
+  greenwashing: "Risk the post is seen as making vague or exaggerated eco claims without concrete evidence.",
+  reaction: "How the audience is likely to respond to the post — from positive to hostile.",
 };
 
 // One-click green-marketing snippets the user can insert into a post, by rhetorical role.

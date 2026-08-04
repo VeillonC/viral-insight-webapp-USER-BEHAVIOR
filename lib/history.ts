@@ -5,6 +5,7 @@ export interface HistoryItem {
   ts: number;
   title?: string;
   text: string;
+  model?: string;
   source?: Source;
   scores: { youtube?: number; x?: number; reddit?: number };
   best: { source: string; score: number; label: string };

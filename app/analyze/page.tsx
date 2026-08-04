@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { predict, getReport, getBarriers, getGreenwashing, getSentiment } from "@/lib/api";
 import { Prediction, Source, Lang, BarrierResponse, GreenwashResponse, SentimentResponse } from "@/lib/types";
-import { TEMPLATES } from "@/lib/config";
+import { TEMPLATES, MODELS, DEFAULT_MODEL_ID, modelName } from "@/lib/config";
 import { addHistory, updateHistory } from "@/lib/history";
 import { useLang } from "../LangContext";
 import { InfoTip, NET_NAMES, NetworkCompare, ScoreGauge, MetaGrid, SummaryBox, FactorBars, Suggestions, ReportPanel, BarrierRadar, GreenwashCard, SentimentCard } from "../components";
@@ -21,6 +21,7 @@ export default function Analyze() {
   const { lang } = useLang();
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
+  const [model, setModel] = useState(DEFAULT_MODEL_ID);
   const [audYt, setAudYt] = useState("");
   const [audX, setAudX] = useState("");
   const [audRd, setAudRd] = useState("");
@@ -149,6 +150,7 @@ export default function Analyze() {
         ts: Date.now(),
         title: title.trim() || undefined,
         text,
+        model,
         source: best.source,
         scores: {
           youtube: res.find((r) => r.source === "youtube")?.prediction.viral_score,
@@ -216,6 +218,13 @@ export default function Analyze() {
               <div><label>X followers</label><input value={audX} onChange={(e) => setAudX(e.target.value)} placeholder="e.g. 12000" inputMode="numeric" /></div>
               <div><label>Reddit members</label><input value={audRd} onChange={(e) => setAudRd(e.target.value)} placeholder="e.g. 340000" inputMode="numeric" /></div>
             </div>
+            <div style={{ marginTop: 16 }}>
+              <label htmlFor="model">Model</label>
+              <select id="model" value={model} onChange={(e) => setModel(e.target.value)}>
+                {MODELS.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+              <div className="help">{MODELS.find((m) => m.id === model)?.blurb}</div>
+            </div>
             <button className="btn btn-block" onClick={onAnalyze} disabled={loading || !text.trim()}>
               {loading ? "Analyzing…" : "Analyze"}
             </button>
@@ -229,7 +238,7 @@ export default function Analyze() {
         <div className="preview" style={{ marginTop: "1.25rem" }}>
           <div className="lbl">Analyzing</div>
           <div className="txt">{analyzedText}</div>
-          <div className="tags">comparing YouTube, X and Reddit · report in {lang.toUpperCase()}</div>
+          <div className="tags">comparing YouTube, X and Reddit · model: {modelName(model)} · report in {lang.toUpperCase()}</div>
         </div>
       )}
 
