@@ -4,6 +4,7 @@ import "./globals.css";
 import { LangProvider } from "./LangContext";
 import Nav from "./Nav";
 import Footer from "./Footer";
+import { Analytics } from "@vercel/analytics/react";
 
 const sora = Sora({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Nav />
           <main className="container">{children}</main>
           <Footer />
+          <Analytics />
         </LangProvider>
       </body>
     </html>

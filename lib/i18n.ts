@@ -224,6 +224,12 @@ const en: Dict = {
   "nf.sub": "The page you're looking for doesn't exist or has moved.",
   "nf.home": "Back to home",
 
+  // ---- Error boundary ----
+  "err.title": "Something went wrong",
+  "err.sub": "An unexpected error occurred. Please try again.",
+  "err.retry": "Try again",
+  "err.home": "Back to home",
+
   // ---- Glossary tooltips ----
   "gloss.probability": "Estimated chance the post goes viral, from the model (0-100%).",
   "gloss.confidence": "How sure the model is about its call — based on how far the score is from the 0.5 threshold.",
@@ -461,6 +467,12 @@ const vi: Dict = {
   "nf.title": "Không tìm thấy trang",
   "nf.sub": "Trang bạn tìm không tồn tại hoặc đã được di chuyển.",
   "nf.home": "Về trang chủ",
+
+  // ---- Error boundary ----
+  "err.title": "Đã xảy ra sự cố",
+  "err.sub": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+  "err.retry": "Thử lại",
+  "err.home": "Về trang chủ",
 
   // ---- Glossary tooltips ----
   "gloss.probability": "Khả năng ước tính bài viết lan truyền, theo mô hình (0-100%).",
