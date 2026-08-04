@@ -134,7 +134,7 @@ textarea:focus, input:focus, select:focus { outline: none; border-color: var(--a
 .btn:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- Onboarding sections ---------- */
-.eyebrow { font-family: var(--font-head); font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); margin: 2.25rem 0 1rem; display: flex; align-items: center; gap: 10px; }
+.eyebrow { font-family: var(--font-head); font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); margin: 2.25rem 0 1rem; display: flex; align-items: center; gap: 10px; scroll-margin-top: 108px; }
 .eyebrow::before { content: ""; width: 20px; height: 3px; border-radius: 2px; background: var(--accent); }
 .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .step { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; box-shadow: var(--shadow); }
@@ -425,6 +425,7 @@ textarea:focus-visible, input:focus-visible, select:focus-visible { outline: non
   .nav-links { order: 3; flex-basis: 100%; flex: 1 0 100%; gap: 18px; font-size: 15px; overflow-x: auto; padding-bottom: 2px; }
   .hero-band { padding: 40px 0 60px; }
   .lead { font-size: 18px; }
+  .eyebrow { scroll-margin-top: 148px; }
 }
 @media (max-width: 620px) {
   .container { padding: 1.25rem 16px 3rem; }
