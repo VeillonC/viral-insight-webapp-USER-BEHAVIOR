@@ -219,6 +219,11 @@ const en: Dict = {
   "lbl.viral": "viral-likely",
   "lbl.notviral": "not-viral",
 
+  // ---- 404 ----
+  "nf.title": "Page not found",
+  "nf.sub": "The page you're looking for doesn't exist or has moved.",
+  "nf.home": "Back to home",
+
   // ---- Glossary tooltips ----
   "gloss.probability": "Estimated chance the post goes viral, from the model (0-100%).",
   "gloss.confidence": "How sure the model is about its call — based on how far the score is from the 0.5 threshold.",
@@ -451,6 +456,11 @@ const vi: Dict = {
   // ---- Labels shared ----
   "lbl.viral": "có khả năng lan truyền",
   "lbl.notviral": "khó lan truyền",
+
+  // ---- 404 ----
+  "nf.title": "Không tìm thấy trang",
+  "nf.sub": "Trang bạn tìm không tồn tại hoặc đã được di chuyển.",
+  "nf.home": "Về trang chủ",
 
   // ---- Glossary tooltips ----
   "gloss.probability": "Khả năng ước tính bài viết lan truyền, theo mô hình (0-100%).",

@@ -8,9 +8,32 @@ import Footer from "./Footer";
 const sora = Sora({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
+const SITE_URL = "https://viral-insight-webapp-user-behavior.vercel.app";
+const TITLE = "EV Campaign Analyser";
+const DESCRIPTION = "Explainable AI analytics for electric-vehicle advertising: predict and explain how a social-media post will perform on YouTube, X and Reddit — before you post.";
+
 export const metadata: Metadata = {
-  title: "EV campaign analyser",
-  description: "AI-powered analytics for electric vehicle advertising campaigns: predict and explain the virality of a social-media post.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: TITLE, template: `%s · ${TITLE}` },
+  description: DESCRIPTION,
+  applicationName: TITLE,
+  keywords: ["EV advertising", "electric vehicle marketing", "virality prediction", "explainable AI", "green marketing", "sustainable marketing"],
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: TITLE,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: TITLE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/og.png"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
