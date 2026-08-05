@@ -57,7 +57,7 @@ export default function VariantLab() {
           </div>
           <div style={{ maxWidth: 220 }}>
             <label htmlFor="vaud">{t("vl.aud")}</label>
-            <input id="vaud" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. 50000" inputMode="numeric" />
+            <input id="vaud" value={audience} onChange={(e) => setAudience(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 50000" inputMode="numeric" pattern="[0-9]*" />
           </div>
         </div>
 

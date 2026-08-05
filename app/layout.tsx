@@ -9,7 +9,7 @@ import { Analytics } from "@vercel/analytics/react";
 const sora = Sora({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
-const SITE_URL = "https://viral-insight-webapp-user-behavior.vercel.app";
+const SITE_URL = "https://ev-campaignanalyser.vercel.app";
 const TITLE = "EV Campaign Analyser";
 const DESCRIPTION = "Explainable AI analytics for electric-vehicle advertising: predict and explain how a social-media post will perform on YouTube, X and Reddit — before you post.";
 

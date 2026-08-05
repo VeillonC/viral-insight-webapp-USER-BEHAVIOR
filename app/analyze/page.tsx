@@ -223,9 +223,9 @@ export default function Analyze() {
           <div>
             <div className="aud-label">{t("an.aud")} <InfoTip term="audience" /> <span className="muted">{t("an.optional")}</span></div>
             <div className="aud-stack">
-              <div><label>{t("an.aud.yt")}</label><input value={audYt} onChange={(e) => setAudYt(e.target.value)} placeholder="e.g. 50000" inputMode="numeric" /></div>
-              <div><label>{t("an.aud.x")}</label><input value={audX} onChange={(e) => setAudX(e.target.value)} placeholder="e.g. 12000" inputMode="numeric" /></div>
-              <div><label>{t("an.aud.rd")}</label><input value={audRd} onChange={(e) => setAudRd(e.target.value)} placeholder="e.g. 340000" inputMode="numeric" /></div>
+              <div><label>{t("an.aud.yt")}</label><input value={audYt} onChange={(e) => setAudYt(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 50000" inputMode="numeric" pattern="[0-9]*" /></div>
+              <div><label>{t("an.aud.x")}</label><input value={audX} onChange={(e) => setAudX(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 12000" inputMode="numeric" pattern="[0-9]*" /></div>
+              <div><label>{t("an.aud.rd")}</label><input value={audRd} onChange={(e) => setAudRd(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 340000" inputMode="numeric" pattern="[0-9]*" /></div>
             </div>
             <div style={{ marginTop: 16 }}>
               <label htmlFor="model">{t("an.model")}</label>

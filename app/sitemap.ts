@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const SITE_URL = "https://viral-insight-webapp-user-behavior.vercel.app";
+const SITE_URL = "https://ev-campaignanalyser.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = ["", "/analyze", "/variant-lab", "/history", "/insights"];
