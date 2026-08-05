@@ -523,6 +523,12 @@ const FACTOR_KEYS: Record<string, string> = {
   role_ratio_hook: "fac.hook",
   cognitive_friction_score: "fac.reading",
   char_count: "fac.length",
+  f_info: "fac.techdensity",
+  f_word: "fac.hardvocab",
+  chan_has_audience: "fac.audknown",
+  src_youtube: "fac.plat_youtube",
+  src_x: "fac.plat_x",
+  src_reddit: "fac.plat_reddit",
 };
 const FAC_EN: Dict = {
   "fac.audience": "Channel audience size",
@@ -531,6 +537,12 @@ const FAC_EN: Dict = {
   "fac.hook": "Ratio of opening hook",
   "fac.reading": "Reading difficulty",
   "fac.length": "Post length (chars)",
+  "fac.techdensity": "Technical-term density",
+  "fac.hardvocab": "Hard vocabulary",
+  "fac.audknown": "Channel audience known",
+  "fac.plat_youtube": "Platform YouTube",
+  "fac.plat_x": "Platform X",
+  "fac.plat_reddit": "Platform Reddit",
 };
 const FAC_VI: Dict = {
   "fac.audience": "Quy mô người theo dõi kênh",
@@ -539,6 +551,12 @@ const FAC_VI: Dict = {
   "fac.hook": "Tỷ lệ câu mở đầu",
   "fac.reading": "Độ khó đọc",
   "fac.length": "Độ dài bài (ký tự)",
+  "fac.techdensity": "Mật độ thuật ngữ kỹ thuật",
+  "fac.hardvocab": "Từ ngữ khó",
+  "fac.audknown": "Đã biết lượng khán giả",
+  "fac.plat_youtube": "Nền tảng YouTube",
+  "fac.plat_x": "Nền tảng X",
+  "fac.plat_reddit": "Nền tảng Reddit",
 };
 export function factorLabel(lang: Lang, feature: string, fallback: string): string {
   if (feature.startsWith("topic")) return translate(lang, "cmp.contenttheme");
