@@ -35,12 +35,12 @@ export function getBarriers(text: string) {
   return postJson<BarrierResponse>("/barriers", { text });
 }
 
-// Greenwashing risk (via Qwen). Depends on the post text only.
-export function getGreenwashing(text: string) {
-  return postJson<GreenwashResponse>("/greenwashing", { text });
+// Greenwashing risk (via Qwen). The explanatory note is written in `lang`.
+export function getGreenwashing(text: string, lang: Lang) {
+  return postJson<GreenwashResponse>("/greenwashing", { text, lang });
 }
 
-// Likely audience reaction (via Qwen). Depends on the post text only.
-export function getSentiment(text: string) {
-  return postJson<SentimentResponse>("/sentiment", { text });
+// Likely audience reaction (via Qwen). The explanatory note is written in `lang`.
+export function getSentiment(text: string, lang: Lang) {
+  return postJson<SentimentResponse>("/sentiment", { text, lang });
 }

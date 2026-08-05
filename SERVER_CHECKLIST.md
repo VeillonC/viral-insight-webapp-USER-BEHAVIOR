@@ -61,6 +61,38 @@ Récupérer l'URL HTTPS publique.
 
 ---
 
+## Config serveur actuelle (à reproduire si réinstallation)
+
+**Modèles LLM (Ollama) :**
+- `/report` → `qwen2.5:7b` (via `REPORT_GEN_MODEL` dans `ml/server/app.py`) — plus rigoureux (ne suggère plus d'ajouter ce qui existe déjà). ~70 s à chaud sur CPU.
+- `/barriers`, `/greenwashing`, `/sentiment` → `qwen2.5:3b` (via `REPORT_MODEL`) — rapides (~10 s).
+
+**Faire cohabiter les 2 modèles sans rechargements à rallonge** — config du service Ollama :
+```bash
+sudo systemctl edit ollama
+```
+Ajouter :
+```
+[Service]
+Environment="OLLAMA_MAX_LOADED_MODELS=2"
+Environment="OLLAMA_KEEP_ALIVE=1h"
+```
+puis `sudo systemctl restart ollama`. (Il faut aussi avoir fait `ollama pull qwen2.5:7b`.)
+
+**Modifs de `ml/server/app.py` (à committer) :**
+- endpoint `/sentiment` (réactions positive/neutral/skeptical/hostile).
+- middleware rate-limiting (60 req/min/IP).
+- CORS restreint à `localhost:3000` + `*.vercel.app`.
+- `/report` : `prediction["post_text"] = req.text` transmis au modèle, et `suggestions` retirées de l'entrée du rapport (fix « ajouter un CTA » déjà présent).
+- `REPORT_GEN_MODEL = qwen2.5:7b`.
+
+**Modifs de `ml/report_ui/generate_report.py` (à committer) :**
+- `PROMPT_TEMPLATES` réécrits (4 sections, sans jargon, une langue, garde les unités).
+- greenwashing : allégations environnementales uniquement (dans app.py).
+- `render_ollama` : `timeout=300`, `keep_alive: "1h"`, filtre anti-blocs de code.
+
+---
+
 ## Avec Raphaël (données / modèle — non bloquant pour le web)
 - Audience Reddit (karma auteur) + X (followers) capturés au crawl ; normalisation par réseau.
 - Stats live de la page Insights (distribution sentiment, topics, stats barrières) au lieu des chiffres statiques.

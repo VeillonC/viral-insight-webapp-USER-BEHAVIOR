@@ -81,6 +81,12 @@ function pretty(lang: Lang, f: Factor) {
   return factorLabel(lang, f.feature, f.label);
 }
 
+// Drop platform indicators that don't match the network being viewed
+// (e.g. hide "Platform youtube" when looking at the X breakdown).
+function relevant(factors: Factor[], source: Source): Factor[] {
+  return factors.filter((f) => !f.feature.startsWith("src_") || f.feature === `src_${source}`);
+}
+
 export function ScoreGauge({ prediction }: { prediction: Prediction }) {
   const { t } = useT();
   const pct = Math.round(prediction.viral_score * 100);
@@ -125,10 +131,11 @@ export function MetaGrid({ prediction, source }: { prediction: Prediction; sourc
   );
 }
 
-export function SummaryBox({ factors }: { factors: Factor[] }) {
+export function SummaryBox({ factors, source }: { factors: Factor[]; source: Source }) {
   const { t, lang } = useT();
-  const up = factors.filter((f) => f.direction === "up");
-  const down = factors.filter((f) => f.direction === "down");
+  const rel = relevant(factors, source);
+  const up = rel.filter((f) => f.direction === "up");
+  const down = rel.filter((f) => f.direction === "down");
   return (
     <div className="card summary-card">
       <div className="section-title"><Icon name="list" /> {t("cmp.summary")}</div>
@@ -146,10 +153,11 @@ export function SummaryBox({ factors }: { factors: Factor[] }) {
   );
 }
 
-export function FactorBars({ factors }: { factors: Factor[] }) {
+export function FactorBars({ factors, source }: { factors: Factor[]; source: Source }) {
   const { t, lang } = useT();
-  const max = Math.max(...factors.map((f) => Math.abs(f.contribution)), 0.0001);
-  const sorted = [...factors].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
+  const rel = relevant(factors, source);
+  const max = Math.max(...rel.map((f) => Math.abs(f.contribution)), 0.0001);
+  const sorted = [...rel].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
   return (
     <div className="card">
       <div className="section-title"><Icon name="chart" /> {t("cmp.why")} <InfoTip term="factors" /></div>
@@ -298,7 +306,7 @@ export function AnalysisDetail({ post, scoresLine, source, prediction, barriers,
         <ScoreGauge prediction={prediction} />
         <MetaGrid prediction={prediction} source={source} />
       </div>
-      <SummaryBox factors={prediction.top_factors} />
+      <SummaryBox factors={prediction.top_factors} source={source} />
       {(barriers || greenwash) && (
         <div className="cols">
           {barriers && <BarrierRadar data={barriers} loading={false} error={null} />}
@@ -307,9 +315,8 @@ export function AnalysisDetail({ post, scoresLine, source, prediction, barriers,
       )}
       {sentiment && <div style={{ marginBottom: "1.25rem" }}><SentimentCard data={sentiment} loading={false} error={null} /></div>}
       <div className="stack">
-        <FactorBars factors={prediction.top_factors} />
+        <FactorBars factors={prediction.top_factors} source={source} />
         {report && <ReportPanel report={report} loading={false} error={null} />}
-        <Suggestions items={prediction.suggestions} />
       </div>
     </>
   );

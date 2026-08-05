@@ -7,7 +7,7 @@ import { MODELS, DEFAULT_MODEL_ID, modelName } from "@/lib/config";
 import { addHistory, updateHistory } from "@/lib/history";
 import { useLang } from "../LangContext";
 import { useT } from "@/lib/i18n";
-import { InfoTip, NET_NAMES, NetworkCompare, ScoreGauge, MetaGrid, SummaryBox, FactorBars, Suggestions, ReportPanel, BarrierRadar, GreenwashCard, SentimentCard } from "../components";
+import { InfoTip, NET_NAMES, NetworkCompare, ScoreGauge, MetaGrid, SummaryBox, FactorBars, ReportPanel, BarrierRadar, GreenwashCard, SentimentCard } from "../components";
 
 interface NetResult { source: Source; audience: number | null; prediction: Prediction; }
 const NETWORKS: Source[] = ["youtube", "x", "reddit"];
@@ -98,7 +98,7 @@ export default function Analyze() {
     setLoadingGreenwash(true);
     setGreenwashError(null);
     try {
-      const g = await getGreenwashing(txt);
+      const g = await getGreenwashing(txt, lang);
       setGreenwash(g);
       if (histId.current) updateHistory(histId.current, { greenwash: g });
     } catch (e) {
@@ -113,7 +113,7 @@ export default function Analyze() {
     setLoadingSentiment(true);
     setSentimentError(null);
     try {
-      const s = await getSentiment(txt);
+      const s = await getSentiment(txt, lang);
       setSentiment(s);
       if (histId.current) updateHistory(histId.current, { sentiment: s });
     } catch (e) {
@@ -128,6 +128,7 @@ export default function Analyze() {
     if (firstLang.current) { firstLang.current = false; return; }
     const sel = results.find((r) => r.source === selected);
     if (sel && analyzedText) fetchReport(analyzedText, selected, sel.audience, lang);
+    if (analyzedText) { fetchGreenwash(analyzedText); fetchSentiment(analyzedText); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
@@ -261,7 +262,7 @@ export default function Analyze() {
                 <ScoreGauge prediction={sel.prediction} />
                 <MetaGrid prediction={sel.prediction} source={selected} />
               </div>
-              <SummaryBox factors={sel.prediction.top_factors} />
+              <SummaryBox factors={sel.prediction.top_factors} source={selected} />
               <div className="cols">
                 <BarrierRadar data={barriers} loading={loadingBarriers} error={barriersError} />
                 <GreenwashCard data={greenwash} loading={loadingGreenwash} error={greenwashError} />
@@ -270,9 +271,8 @@ export default function Analyze() {
                 <SentimentCard data={sentiment} loading={loadingSentiment} error={sentimentError} />
               </div>
               <div className="stack">
-                <FactorBars factors={sel.prediction.top_factors} />
+                <FactorBars factors={sel.prediction.top_factors} source={selected} />
                 <ReportPanel report={report} loading={loadingReport} error={reportError} />
-                <Suggestions items={sel.prediction.suggestions} />
               </div>
             </>
           )}
