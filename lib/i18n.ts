@@ -146,6 +146,7 @@ const en: Dict = {
   "rep.title": "AI report",
   "rep.loading": "Writing the report…",
   "rep.err": "Report couldn't be generated: {0}",
+  "rep.translate": "Translate this report to English",
   "detail.analyzedpost": "Analyzed post",
 
   // ---- History ----
@@ -390,6 +391,7 @@ const vi: Dict = {
   "rep.title": "Báo cáo AI",
   "rep.loading": "Đang viết báo cáo…",
   "rep.err": "Không tạo được báo cáo: {0}",
+  "rep.translate": "Dịch báo cáo này sang tiếng Việt",
   "detail.analyzedpost": "Bài đã phân tích",
 
   // ---- History ----

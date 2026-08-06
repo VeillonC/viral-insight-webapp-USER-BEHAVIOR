@@ -81,10 +81,11 @@ function pretty(lang: Lang, f: Factor) {
   return factorLabel(lang, f.feature, f.label);
 }
 
-// Drop platform indicators that don't match the network being viewed
-// (e.g. hide "Platform youtube" when looking at the X breakdown).
-function relevant(factors: Factor[], source: Source): Factor[] {
-  return factors.filter((f) => !f.feature.startsWith("src_") || f.feature === `src_${source}`);
+// Hide platform indicators (src_*) from the factor lists: they reflect the
+// model's baseline per-platform rate, are not actionable for a marketer, and
+// confuse the breakdown. We keep only factors the user can actually act on.
+function relevant(factors: Factor[]): Factor[] {
+  return factors.filter((f) => !f.feature.startsWith("src_"));
 }
 
 export function ScoreGauge({ prediction }: { prediction: Prediction }) {
@@ -131,9 +132,9 @@ export function MetaGrid({ prediction, source }: { prediction: Prediction; sourc
   );
 }
 
-export function SummaryBox({ factors, source }: { factors: Factor[]; source: Source }) {
+export function SummaryBox({ factors }: { factors: Factor[] }) {
   const { t, lang } = useT();
-  const rel = relevant(factors, source);
+  const rel = relevant(factors);
   const up = rel.filter((f) => f.direction === "up");
   const down = rel.filter((f) => f.direction === "down");
   return (
@@ -153,9 +154,9 @@ export function SummaryBox({ factors, source }: { factors: Factor[]; source: Sou
   );
 }
 
-export function FactorBars({ factors, source }: { factors: Factor[]; source: Source }) {
+export function FactorBars({ factors }: { factors: Factor[] }) {
   const { t, lang } = useT();
-  const rel = relevant(factors, source);
+  const rel = relevant(factors);
   const max = Math.max(...rel.map((f) => Math.abs(f.contribution)), 0.0001);
   const sorted = [...rel].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
   return (
@@ -306,7 +307,7 @@ export function AnalysisDetail({ post, scoresLine, source, prediction, barriers,
         <ScoreGauge prediction={prediction} />
         <MetaGrid prediction={prediction} source={source} />
       </div>
-      <SummaryBox factors={prediction.top_factors} source={source} />
+      <SummaryBox factors={prediction.top_factors} />
       {(barriers || greenwash) && (
         <div className="cols">
           {barriers && <BarrierRadar data={barriers} loading={false} error={null} />}
@@ -315,14 +316,14 @@ export function AnalysisDetail({ post, scoresLine, source, prediction, barriers,
       )}
       {sentiment && <div style={{ marginBottom: "1.25rem" }}><SentimentCard data={sentiment} loading={false} error={null} /></div>}
       <div className="stack">
-        <FactorBars factors={prediction.top_factors} source={source} />
+        <FactorBars factors={prediction.top_factors} />
         {report && <ReportPanel report={report} loading={false} error={null} />}
       </div>
     </>
   );
 }
 
-export function ReportPanel({ report, loading, error }: { report: string | null; loading: boolean; error: string | null }) {
+export function ReportPanel({ report, loading, error, onTranslate, translateLabel }: { report: string | null; loading: boolean; error: string | null; onTranslate?: () => void; translateLabel?: string }) {
   const { t } = useT();
   const body = report ? report.replace(/^\s*#{0,6}\s*report\s*\r?\n+/i, "").trim() : "";
   return (
@@ -336,7 +337,12 @@ export function ReportPanel({ report, loading, error }: { report: string | null;
       )}
       {error && !loading && <div className="warn">{t("rep.err", error)}</div>}
       {report && !loading && (
-        <div className="report-text markdown"><ReactMarkdown>{body}</ReactMarkdown></div>
+        <>
+          <div className="report-text markdown"><ReactMarkdown>{body}</ReactMarkdown></div>
+          {onTranslate && translateLabel && (
+            <button className="btn-ghost" style={{ marginTop: 14 }} onClick={onTranslate}>{translateLabel}</button>
+          )}
+        </>
       )}
     </div>
   );

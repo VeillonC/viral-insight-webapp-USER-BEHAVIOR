@@ -40,6 +40,7 @@ export default function Analyze() {
   const [results, setResults] = useState<NetResult[]>([]);
   const [selected, setSelected] = useState<Source>("youtube");
   const [report, setReport] = useState<string | null>(null);
+  const [reportLang, setReportLang] = useState<Lang | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +54,6 @@ export default function Analyze() {
   const [sentiment, setSentiment] = useState<SentimentResponse | null>(null);
   const [loadingSentiment, setLoadingSentiment] = useState(false);
   const [sentimentError, setSentimentError] = useState<string | null>(null);
-  const firstLang = useRef(true);
   const histId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -70,6 +70,7 @@ export default function Analyze() {
     try {
       const res = await getReport(txt, s, audience, l);
       setReport(res.report);
+      setReportLang(l);
       if (histId.current) updateHistory(histId.current, { report: res.report });
     } catch (e) {
       setReport(null);
@@ -124,14 +125,6 @@ export default function Analyze() {
     }
   }
 
-  useEffect(() => {
-    if (firstLang.current) { firstLang.current = false; return; }
-    const sel = results.find((r) => r.source === selected);
-    if (sel && analyzedText) fetchReport(analyzedText, selected, sel.audience, lang);
-    if (analyzedText) { fetchGreenwash(analyzedText); fetchSentiment(analyzedText); }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
-
   async function onAnalyze() {
     const auds = audMap();
     setAnalyzedText(text);
@@ -147,7 +140,10 @@ export default function Analyze() {
     setSentimentError(null);
     setLoading(true);
     try {
-      const preds = await Promise.all(NETWORKS.map((s) => predict(text, s, auds[s])));
+      // Sequential calls: Tailscale Funnel (free tier) and the CPU can't handle
+      // many requests at once — parallel calls return 502. One at a time.
+      const preds: Prediction[] = [];
+      for (const s of NETWORKS) preds.push(await predict(text, s, auds[s]));
       const res: NetResult[] = NETWORKS.map((s, i) => ({ source: s, audience: auds[s], prediction: preds[i] }));
       setResults(res);
       const best = res.reduce((a, b) => (b.prediction.viral_score > a.prediction.viral_score ? b : a));
@@ -170,10 +166,12 @@ export default function Analyze() {
         best: { source: best.source, score: best.prediction.viral_score, label: best.prediction.label },
         prediction: best.prediction,
       });
-      fetchReport(text, best.source, best.audience, lang);
-      fetchBarriers(text);
-      fetchGreenwash(text);
-      fetchSentiment(text);
+      // Run the LLM analyses one after another (avoids 502s through the Funnel
+      // and CPU contention). Fast 3B cards first, then the slower 7B report.
+      await fetchBarriers(text);
+      await fetchGreenwash(text);
+      await fetchSentiment(text);
+      await fetchReport(text, best.source, best.audience, lang);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("an.err"));
       setLoading(false);
@@ -262,7 +260,7 @@ export default function Analyze() {
                 <ScoreGauge prediction={sel.prediction} />
                 <MetaGrid prediction={sel.prediction} source={selected} />
               </div>
-              <SummaryBox factors={sel.prediction.top_factors} source={selected} />
+              <SummaryBox factors={sel.prediction.top_factors} />
               <div className="cols">
                 <BarrierRadar data={barriers} loading={loadingBarriers} error={barriersError} />
                 <GreenwashCard data={greenwash} loading={loadingGreenwash} error={greenwashError} />
@@ -271,8 +269,14 @@ export default function Analyze() {
                 <SentimentCard data={sentiment} loading={loadingSentiment} error={sentimentError} />
               </div>
               <div className="stack">
-                <FactorBars factors={sel.prediction.top_factors} source={selected} />
-                <ReportPanel report={report} loading={loadingReport} error={reportError} />
+                <FactorBars factors={sel.prediction.top_factors} />
+                <ReportPanel
+                  report={report}
+                  loading={loadingReport}
+                  error={reportError}
+                  onTranslate={reportLang && reportLang !== lang && sel && analyzedText ? () => fetchReport(analyzedText, selected, sel.audience, lang) : undefined}
+                  translateLabel={t("rep.translate")}
+                />
               </div>
             </>
           )}
