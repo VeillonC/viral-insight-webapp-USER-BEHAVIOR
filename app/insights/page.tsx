@@ -12,10 +12,10 @@ export default function Insights() {
 
       <div className="eyebrow">{t("in.dataset")}</div>
       <div className="metrics">
-        <div className="metric"><div className="label">{t("in.corpus")}</div><div className="value">~745k</div><div className="sub">{t("in.corpus.sub")}</div></div>
-        <div className="metric"><div className="label">YouTube</div><div className="value">621k</div><div className="sub">{t("in.yt.sub")}</div></div>
-        <div className="metric"><div className="label">Reddit</div><div className="value">108k</div><div className="sub">{t("in.rd.sub")}</div></div>
-        <div className="metric"><div className="label">X</div><div className="value">16.5k</div><div className="sub">{t("in.x.sub")}</div></div>
+        <div className="metric"><div className="label">{t("in.corpus")}</div><div className="value">3,990</div><div className="sub">{t("in.corpus.sub")}</div></div>
+        <div className="metric"><div className="label">YouTube</div><div className="value">1,978</div><div className="sub">{t("in.yt.sub")}</div></div>
+        <div className="metric"><div className="label">Reddit</div><div className="value">1,341</div><div className="sub">{t("in.rd.sub")}</div></div>
+        <div className="metric"><div className="label">X</div><div className="value">671</div><div className="sub">{t("in.x.sub")}</div></div>
       </div>
 
       <div className="eyebrow">{t("in.modelperf")}</div>

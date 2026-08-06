@@ -54,7 +54,7 @@ export default function Landing() {
         {t("home.lead.a")}<strong>{t("home.lead.strong")}</strong>{t("home.lead.b")}
       </p>
       <div className="stat-band">
-        <div className="stat"><div className="stat-num">600k+</div><div className="stat-lbl">{t("home.stat.posts")}</div></div>
+        <div className="stat"><div className="stat-num">~4,000</div><div className="stat-lbl">{t("home.stat.posts")}</div></div>
         <div className="stat"><div className="stat-num">3</div><div className="stat-lbl">{t("home.stat.networks")}</div></div>
         <div className="stat"><div className="stat-num">EN · VI</div><div className="stat-lbl">{t("home.stat.bilingual")}</div></div>
         <div className="stat"><div className="stat-num">100%</div><div className="stat-lbl">{t("home.stat.explainable")}</div></div>
