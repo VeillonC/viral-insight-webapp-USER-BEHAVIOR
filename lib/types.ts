@@ -25,6 +25,18 @@ export interface ReportResponse {
   prediction: Prediction;
 }
 
+export type ReportJobStatus = "queued" | "running" | "succeeded" | "failed";
+export interface ReportJobResponse {
+  job_id: string;
+  status: ReportJobStatus;
+  position: number | null;
+  submitted_at: number;
+  started_at: number | null;
+  finished_at: number | null;
+  result?: ReportResponse;
+  error?: string;
+}
+
 export type BarrierStatus = "addressed" | "mentioned" | "not_mentioned";
 export interface Barrier {
   key: string;

@@ -325,7 +325,7 @@ export function AnalysisDetail({ post, scoresLine, source, prediction, barriers,
   );
 }
 
-export function ReportPanel({ report, loading, error, onTranslate, translateLabel }: { report: string | null; loading: boolean; error: string | null; onTranslate?: () => void; translateLabel?: string }) {
+export function ReportPanel({ report, loading, loadingLabel, error, onTranslate, translateLabel }: { report: string | null; loading: boolean; loadingLabel?: string | null; error: string | null; onTranslate?: () => void; translateLabel?: string }) {
   const { t } = useT();
   const body = report ? report.replace(/^\s*#{0,6}\s*report\s*\r?\n+/i, "").trim() : "";
   return (
@@ -334,7 +334,7 @@ export function ReportPanel({ report, loading, error, onTranslate, translateLabe
       {loading && (
         <div className="skeleton">
           <span style={{ width: "90%" }} /><span style={{ width: "97%" }} /><span style={{ width: "80%" }} /><span style={{ width: "60%" }} />
-          <div className="loading-row" style={{ marginTop: 6 }}><span className="spinner" />{t("rep.loading")}</div>
+          <div className="loading-row" style={{ marginTop: 6 }}><span className="spinner" />{loadingLabel || t("rep.loading")}</div>
         </div>
       )}
       {error && !loading && <div className="warn">{t("rep.err", error)}</div>}

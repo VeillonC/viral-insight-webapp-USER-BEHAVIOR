@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { addHistory, getHistory, updateHistory, deleteHistory, clearHistory, HistoryItem } from "@/lib/history";
+import {
+  addHistory, getHistory, updateHistory, deleteHistory, clearHistory,
+  historyStatus, saveAnalysisDraft, consumeAnalysisDraft, HistoryItem,
+} from "@/lib/history";
 
 function makeItem(id: string): HistoryItem {
   return {
@@ -26,6 +29,22 @@ describe("history (localStorage)", () => {
     addHistory(makeItem("a"));
     updateHistory("a", { title: "Renamed" });
     expect(getHistory()[0].title).toBe("Renamed");
+  });
+
+  it("treats legacy history items as completed", () => {
+    expect(historyStatus(makeItem("legacy"))).toBe("completed");
+  });
+
+  it("stores an editable one-shot draft from an existing analysis", () => {
+    const item = { ...makeItem("a"), title: "Campaign", model: "audience-x90", audiences: { youtube: 10, x: 20, reddit: null } };
+    saveAnalysisDraft(item);
+    expect(consumeAnalysisDraft()).toEqual({
+      title: "Campaign",
+      text: "post a",
+      model: "audience-x90",
+      audiences: { youtube: 10, x: 20, reddit: null },
+    });
+    expect(consumeAnalysisDraft()).toBeNull();
   });
 
   it("deletes an item by id", () => {
