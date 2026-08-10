@@ -43,6 +43,7 @@ export default function Analyze() {
   const [report, setReport] = useState<string | null>(null);
   const [reportLang, setReportLang] = useState<Lang | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingAiPipeline, setLoadingAiPipeline] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export default function Analyze() {
   const [loadingSentiment, setLoadingSentiment] = useState(false);
   const [sentimentError, setSentimentError] = useState<string | null>(null);
   const histId = useRef<string | null>(null);
+  const aiPipelineBusyRef = useRef(false);
 
   useEffect(() => {
     const el = taRef.current;
@@ -127,6 +129,9 @@ export default function Analyze() {
   }
 
   async function onAnalyze() {
+    if (aiPipelineBusyRef.current) return;
+    aiPipelineBusyRef.current = true;
+    setLoadingAiPipeline(true);
     const auds = audMap();
     const requestedModel = model;
     const apiModel = modelApiId(requestedModel);
@@ -179,6 +184,9 @@ export default function Analyze() {
     } catch (e) {
       setError(e instanceof Error ? e.message : t("an.err"));
       setLoading(false);
+    } finally {
+      aiPipelineBusyRef.current = false;
+      setLoadingAiPipeline(false);
     }
   }
 
@@ -187,6 +195,7 @@ export default function Analyze() {
   }
 
   function selectNetwork(s: Source) {
+    if (aiPipelineBusyRef.current) return;
     setSelected(s);
     const r = results.find((x) => x.source === s);
     if (r && analyzedText) fetchReport(analyzedText, s, r.audience, lang, r.prediction.model ?? modelApiId(analyzedModel));
@@ -237,8 +246,8 @@ export default function Analyze() {
               </select>
               <div className="help">{t(`model.${model}.blurb`)}</div>
             </div>
-            <button className="btn btn-block" onClick={onAnalyze} disabled={loading || !text.trim()}>
-              {loading ? t("an.analyzing") : t("an.analyze")}
+            <button className="btn btn-block" onClick={onAnalyze} disabled={loadingAiPipeline || !text.trim()}>
+              {loadingAiPipeline ? t("an.analyzing") : t("an.analyze")}
             </button>
           </div>
         </div>
