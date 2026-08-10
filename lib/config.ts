@@ -18,15 +18,15 @@ export const MODELS: ModelInfo[] = [
   {
     id: "fusion-v1",
     apiId: "legacy",
-    name: "Fusion v1",
-    blurb: "Content, audience, marketing roles and topics combined (XGBoost). Balanced default across networks.",
+    name: "Fusion 1 — 4K",
+    blurb: "Fusion combines content, audience, marketing-role and EV-topic signals in one XGBoost prediction. Trained on 3,990 posts.",
     reliability: { youtube: 0.92, reddit: 0.76, x: 0.72, "": 0.84 },
   },
   {
     id: "audience-x90",
     apiId: "audience-x90",
-    name: "Audience X90",
-    blurb: "Audience-enriched model trained on 58,020 balanced posts with grouped out-of-fold validation.",
+    name: "Fusion 1 — 58K",
+    blurb: "The same signal-fusion approach, trained on 58,020 source-balanced posts with grouped out-of-fold validation.",
     reliability: { youtube: 0.647, reddit: 0.556, x: 0.861, "": 0.729 },
   },
 ];
