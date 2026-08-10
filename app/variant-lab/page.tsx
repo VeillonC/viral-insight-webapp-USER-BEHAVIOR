@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { predictBatch } from "@/lib/api";
 import { Prediction, Source } from "@/lib/types";
+import { DEFAULT_MODEL_ID, MODELS, modelApiId } from "@/lib/config";
 import { useT } from "@/lib/i18n";
 
 interface VarResult { text: string; prediction: Prediction; }
@@ -10,6 +11,7 @@ interface VarResult { text: string; prediction: Prediction; }
 export default function VariantLab() {
   const { t } = useT();
   const [source, setSource] = useState<Source>("youtube");
+  const [model, setModel] = useState(DEFAULT_MODEL_ID);
   const [audience, setAudience] = useState("");
   const [variants, setVariants] = useState<string[]>(["", ""]);
   const [results, setResults] = useState<VarResult[]>([]);
@@ -22,7 +24,8 @@ export default function VariantLab() {
 
   async function onCompare() {
     const aud = audience.trim() ? Number(audience.replace(/[^0-9.]/g, "")) : null;
-    const items = variants.map((t) => t.trim()).filter(Boolean).map((t) => ({ text: t, source, audience: aud }));
+    const apiModel = modelApiId(model);
+    const items = variants.map((t) => t.trim()).filter(Boolean).map((t) => ({ text: t, source, audience: aud, model: apiModel }));
     if (items.length < 2) { setError(t("vl.need2")); return; }
     setError(null);
     setLoading(true);
@@ -59,6 +62,12 @@ export default function VariantLab() {
             <label htmlFor="vaud">{t("vl.aud")}</label>
             <input id="vaud" value={audience} onChange={(e) => setAudience(e.target.value.replace(/\D/g, ""))} placeholder="e.g. 50000" inputMode="numeric" pattern="[0-9]*" />
           </div>
+          <div style={{ maxWidth: 220 }}>
+            <label htmlFor="vmodel">{t("an.model")}</label>
+            <select id="vmodel" value={model} onChange={(e) => setModel(e.target.value)}>
+              {MODELS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </div>
         </div>
 
         <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -87,7 +96,7 @@ export default function VariantLab() {
           <div className="stack">
             {ranked.map((r, idx) => {
               const pct = Math.round(r.prediction.viral_score * 100);
-              const isViral = r.prediction.viral_score >= 0.5;
+              const isViral = r.prediction.label === "viral-likely";
               return (
                 <div className={`card variant-result${r.text === bestText ? " best" : ""}`} key={idx}>
                   <div className="variant-top">

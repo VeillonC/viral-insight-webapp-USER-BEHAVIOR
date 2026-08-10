@@ -2,7 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import { BarrierResponse, Factor, GreenwashResponse, Lang, Prediction, SentimentResponse, Source } from "@/lib/types";
-import { PLATFORM_RELIABILITY, GLOSSARY } from "@/lib/config";
+import { GLOSSARY, modelReliability } from "@/lib/config";
 import { useT, factorLabel, TFunc } from "@/lib/i18n";
 
 function labelText(t: TFunc, label: string): string {
@@ -60,8 +60,9 @@ export function NetworkCompare({ results, selected, onSelect }: {
       <div className="net-grid">
         {sorted.map((r) => {
           const pct = Math.round(r.prediction.viral_score * 100);
-          const rel = Math.round((PLATFORM_RELIABILITY[r.source] ?? PLATFORM_RELIABILITY[""]) * 100);
-          const isViral = r.prediction.viral_score >= 0.5;
+          const reliability = modelReliability(r.prediction.model);
+          const rel = Math.round((reliability[r.source] ?? reliability[""]) * 100);
+          const isViral = r.prediction.label === "viral-likely";
           return (
             <button key={r.source} className={`net-card${r.source === selected ? " active" : ""}`} onClick={() => onSelect(r.source)}>
               {r.source === best.source && <span className="net-best">{t("cmp.best")}</span>}
@@ -91,7 +92,7 @@ function relevant(factors: Factor[]): Factor[] {
 export function ScoreGauge({ prediction }: { prediction: Prediction }) {
   const { t } = useT();
   const pct = Math.round(prediction.viral_score * 100);
-  const isViral = prediction.viral_score >= 0.5;
+  const isViral = prediction.label === "viral-likely";
   const C = 2 * Math.PI * 38;
   const offset = C * (1 - prediction.viral_score);
   const color = isViral ? "#15803d" : "#b45309";
@@ -113,7 +114,8 @@ export function ScoreGauge({ prediction }: { prediction: Prediction }) {
 export function MetaGrid({ prediction, source }: { prediction: Prediction; source: Source }) {
   const { t } = useT();
   const conf = Math.round(prediction.confidence * 100);
-  const rel = PLATFORM_RELIABILITY[source] ?? PLATFORM_RELIABILITY[""];
+  const reliability = modelReliability(prediction.model);
+  const rel = reliability[source] ?? reliability[""];
   const relPct = Math.round(rel * 100);
   const weak = rel < 0.75;
   return (

@@ -1,4 +1,4 @@
-import { BarrierResponse, GreenwashResponse, Lang, Prediction, ReportResponse, SentimentResponse, Source } from "./types";
+import { BarrierResponse, GreenwashResponse, Lang, Prediction, PredictionModel, ReportResponse, SentimentResponse, Source } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://100.70.0.2:8000";
 
@@ -16,17 +16,17 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
 }
 
 // Fast: prediction only (score, factors, suggestions). Returns almost instantly.
-export function predict(text: string, source: Source, audience: number | null) {
-  return postJson<Prediction>("/predict", { text, source, audience });
+export function predict(text: string, source: Source, audience: number | null, model: PredictionModel = "legacy") {
+  return postJson<Prediction>("/predict", { text, source, audience, model });
 }
 
 // Slow: LLM-generated report (Qwen). Called after predict, loads in the background.
-export function getReport(text: string, source: Source, audience: number | null, lang: Lang) {
-  return postJson<ReportResponse>("/report", { text, source, audience, lang });
+export function getReport(text: string, source: Source, audience: number | null, lang: Lang, model: PredictionModel = "legacy") {
+  return postJson<ReportResponse>("/report", { text, source, audience, lang, model });
 }
 
 // Batch: predict many posts at once (used by the Variant lab).
-export function predictBatch(items: { text: string; source: Source; audience: number | null }[]) {
+export function predictBatch(items: { text: string; source: Source; audience: number | null; model?: PredictionModel }[]) {
   return postJson<Prediction[]>("/predict/batch", { items });
 }
 

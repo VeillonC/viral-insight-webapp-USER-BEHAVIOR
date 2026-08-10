@@ -1,5 +1,6 @@
 export type Source = "youtube" | "x" | "reddit" | "";
 export type Lang = "en" | "vi";
+export type PredictionModel = "legacy" | "audience-x90";
 
 export interface Factor {
   feature: string;
@@ -16,6 +17,7 @@ export interface Prediction {
   top_factors: Factor[];
   explanation_text: string;
   suggestions: string[];
+  model?: PredictionModel;
 }
 
 export interface ReportResponse {

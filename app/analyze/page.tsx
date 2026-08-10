@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { predict, getReport, getBarriers, getGreenwashing, getSentiment } from "@/lib/api";
-import { Prediction, Source, Lang, BarrierResponse, GreenwashResponse, SentimentResponse } from "@/lib/types";
-import { MODELS, DEFAULT_MODEL_ID, modelName } from "@/lib/config";
+import { Prediction, Source, Lang, BarrierResponse, GreenwashResponse, SentimentResponse, PredictionModel } from "@/lib/types";
+import { MODELS, DEFAULT_MODEL_ID, modelApiId, modelName } from "@/lib/config";
 import { addHistory, updateHistory } from "@/lib/history";
 import { useLang } from "../LangContext";
 import { useT } from "@/lib/i18n";
@@ -37,6 +37,7 @@ export default function Analyze() {
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   const [analyzedText, setAnalyzedText] = useState<string | null>(null);
+  const [analyzedModel, setAnalyzedModel] = useState(DEFAULT_MODEL_ID);
   const [results, setResults] = useState<NetResult[]>([]);
   const [selected, setSelected] = useState<Source>("youtube");
   const [report, setReport] = useState<string | null>(null);
@@ -64,11 +65,11 @@ export default function Analyze() {
   const parseAud = (raw: string) => (raw.trim() ? Number(raw.replace(/[^0-9.]/g, "")) : null);
   const audMap = (): Record<Source, number | null> => ({ youtube: parseAud(audYt), x: parseAud(audX), reddit: parseAud(audRd), "": null });
 
-  async function fetchReport(txt: string, s: Source, audience: number | null, l: Lang) {
+  async function fetchReport(txt: string, s: Source, audience: number | null, l: Lang, apiModel: PredictionModel) {
     setLoadingReport(true);
     setReportError(null);
     try {
-      const res = await getReport(txt, s, audience, l);
+      const res = await getReport(txt, s, audience, l, apiModel);
       setReport(res.report);
       setReportLang(l);
       if (histId.current) updateHistory(histId.current, { report: res.report });
@@ -127,7 +128,10 @@ export default function Analyze() {
 
   async function onAnalyze() {
     const auds = audMap();
+    const requestedModel = model;
+    const apiModel = modelApiId(requestedModel);
     setAnalyzedText(text);
+    setAnalyzedModel(requestedModel);
     setResults([]);
     setReport(null);
     setError(null);
@@ -143,7 +147,7 @@ export default function Analyze() {
       // Sequential calls: Tailscale Funnel (free tier) and the CPU can't handle
       // many requests at once — parallel calls return 502. One at a time.
       const preds: Prediction[] = [];
-      for (const s of NETWORKS) preds.push(await predict(text, s, auds[s]));
+      for (const s of NETWORKS) preds.push(await predict(text, s, auds[s], apiModel));
       const res: NetResult[] = NETWORKS.map((s, i) => ({ source: s, audience: auds[s], prediction: preds[i] }));
       setResults(res);
       const best = res.reduce((a, b) => (b.prediction.viral_score > a.prediction.viral_score ? b : a));
@@ -156,7 +160,7 @@ export default function Analyze() {
         ts: Date.now(),
         title: title.trim() || undefined,
         text,
-        model,
+        model: requestedModel,
         source: best.source,
         scores: {
           youtube: res.find((r) => r.source === "youtube")?.prediction.viral_score,
@@ -171,7 +175,7 @@ export default function Analyze() {
       await fetchBarriers(text);
       await fetchGreenwash(text);
       await fetchSentiment(text);
-      await fetchReport(text, best.source, best.audience, lang);
+      await fetchReport(text, best.source, best.audience, lang, apiModel);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("an.err"));
       setLoading(false);
@@ -185,7 +189,7 @@ export default function Analyze() {
   function selectNetwork(s: Source) {
     setSelected(s);
     const r = results.find((x) => x.source === s);
-    if (r && analyzedText) fetchReport(analyzedText, s, r.audience, lang);
+    if (r && analyzedText) fetchReport(analyzedText, s, r.audience, lang, r.prediction.model ?? modelApiId(analyzedModel));
   }
 
   const sel = results.find((r) => r.source === selected);
@@ -246,7 +250,7 @@ export default function Analyze() {
         <div className="preview" style={{ marginTop: "1.25rem" }}>
           <div className="lbl">{t("an.preview.lbl")}</div>
           <div className="txt">{analyzedText}</div>
-          <div className="tags">{t("an.preview.tags", modelName(model), lang.toUpperCase())}</div>
+          <div className="tags">{t("an.preview.tags", modelName(analyzedModel), lang.toUpperCase())}</div>
         </div>
       )}
 
@@ -274,7 +278,7 @@ export default function Analyze() {
                   report={report}
                   loading={loadingReport}
                   error={reportError}
-                  onTranslate={reportLang && reportLang !== lang && sel && analyzedText ? () => fetchReport(analyzedText, selected, sel.audience, lang) : undefined}
+                  onTranslate={reportLang && reportLang !== lang && sel && analyzedText ? () => fetchReport(analyzedText, selected, sel.audience, lang, sel.prediction.model ?? modelApiId(analyzedModel)) : undefined}
                   translateLabel={t("rep.translate")}
                 />
               </div>
