@@ -12,7 +12,7 @@ const MODEL_DETAILS = {
     datasetKey: "in.fusion.dataset",
     audienceKey: "in.fusion.audience",
     validationKey: "in.fusion.validation",
-    featureCount: null,
+    featureCount: 52,
   },
   "audience-x90": {
     number: "02",

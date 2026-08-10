@@ -34,7 +34,7 @@ afterEach(() => {
 });
 
 describe("AI model selection", () => {
-  it("keeps the historic Fusion v1 choice mapped to legacy", () => {
+  it("keeps the historic Fusion 1 — 4K choice mapped to legacy", () => {
     expect(modelApiId("fusion-v1")).toBe("legacy");
   });
 
