@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getHistory, deleteHistory, clearHistory, HistoryItem } from "@/lib/history";
+import { useRouter } from "next/navigation";
+import { getHistory, deleteHistory, clearHistory, historyStatus, saveAnalysisDraft, HistoryItem } from "@/lib/history";
 import { Source } from "@/lib/types";
 import { modelName } from "@/lib/config";
 import { AnalysisDetail, Icon } from "../components";
@@ -10,8 +11,12 @@ import { useT, TFunc } from "@/lib/i18n";
 const NAMES: Record<string, string> = { youtube: "YouTube", x: "X", reddit: "Reddit" };
 const pct = (v?: number) => (v == null ? "—" : `${Math.round(v * 100)}%`);
 
+type ScoredHistoryItem = HistoryItem & { best: NonNullable<HistoryItem["best"]> };
+
 function TrendChart({ items, t }: { items: HistoryItem[]; t: TFunc }) {
-  const data = [...items].sort((a, b) => a.ts - b.ts);
+  const data = items
+    .filter((item): item is ScoredHistoryItem => historyStatus(item) === "completed" && item.best != null)
+    .sort((a, b) => a.ts - b.ts);
   if (data.length < 2) return null;
   const W = 600, H = 150, padX = 40, padY = 16, plotW = W - 2 * padX, plotH = H - 2 * padY - 12;
   const n = data.length;
@@ -37,37 +42,48 @@ function TrendChart({ items, t }: { items: HistoryItem[]; t: TFunc }) {
 }
 
 export default function History() {
+  const router = useRouter();
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sort, setSort] = useState<"date" | "score">("date");
   const [openItem, setOpenItem] = useState<HistoryItem | null>(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
   const { t } = useT();
 
-  useEffect(() => { setItems(getHistory()); }, []);
-  useEffect(() => { setPage(1); }, [query, filter, sort]);
+  useEffect(() => {
+    const refresh = () => setItems(getHistory());
+    refresh();
+    const timer = window.setInterval(refresh, 1_000);
+    window.addEventListener("storage", refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener("storage", refresh); };
+  }, []);
+  useEffect(() => { setPage(1); }, [query, filter, statusFilter, sort]);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     let a = items.filter((i) => i.text.toLowerCase().includes(q) || (i.title ?? "").toLowerCase().includes(q));
-    if (filter !== "all") a = a.filter((i) => i.best.source === filter);
-    a = [...a].sort((x, y) => (sort === "date" ? y.ts - x.ts : y.best.score - x.best.score));
+    if (filter !== "all") a = a.filter((i) => i.best?.source === filter);
+    if (statusFilter !== "all") a = a.filter((i) => historyStatus(i) === statusFilter);
+    a = [...a].sort((x, y) => (sort === "date" ? y.ts - x.ts : (y.best?.score ?? -1) - (x.best?.score ?? -1)));
     return a;
-  }, [items, query, filter, sort]);
+  }, [items, query, filter, statusFilter, sort]);
 
   function onDelete(id: string) { deleteHistory(id); setItems(getHistory()); }
   function onClear() { if (confirm(t("hist.confirm"))) { clearHistory(); setItems([]); } }
+  function onReuse(item: HistoryItem) { saveAnalysisDraft(item); router.push("/analyze"); }
 
   function exportCsv() {
-    const head = ["date", "title", "text", "best_network", "best_score", "youtube", "x", "reddit"];
+    const head = ["date", "status", "title", "text", "best_network", "best_score", "youtube", "x", "reddit"];
     const rows = filtered.map((i) => [
       new Date(i.ts).toISOString(),
+      historyStatus(i),
       `"${(i.title ?? "").replace(/"/g, '""')}"`,
       `"${i.text.replace(/"/g, '""')}"`,
-      i.best.source, pct(i.best.score),
-      pct(i.scores.youtube), pct(i.scores.x), pct(i.scores.reddit),
+      i.best?.source ?? "", pct(i.best?.score),
+      pct(i.scores?.youtube), pct(i.scores?.x), pct(i.scores?.reddit),
     ].join(","));
     const csv = [head.join(","), ...rows].join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
@@ -81,7 +97,7 @@ export default function History() {
   const pageItems = filtered.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
 
   const scoresLine = (i: HistoryItem) =>
-    t("hist.scoresline", pct(i.scores.youtube), pct(i.scores.x), pct(i.scores.reddit), NAMES[i.best.source], modelName(i.model));
+    t("hist.scoresline", pct(i.scores?.youtube), pct(i.scores?.x), pct(i.scores?.reddit), i.best ? NAMES[i.best.source] : "—", modelName(i.model));
 
   return (
     <>
@@ -100,6 +116,13 @@ export default function History() {
               <option value="x">{t("hist.best.x")}</option>
               <option value="reddit">{t("hist.best.rd")}</option>
             </select>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ maxWidth: 170 }}>
+              <option value="all">{t("hist.status.all")}</option>
+              <option value="completed">{t("hist.status.completed")}</option>
+              <option value="running">{t("hist.status.running")}</option>
+              <option value="pending">{t("hist.status.pending")}</option>
+              <option value="failed">{t("hist.status.failed")}</option>
+            </select>
             <select value={sort} onChange={(e) => setSort(e.target.value as "date" | "score")} style={{ maxWidth: 170 }}>
               <option value="date">{t("hist.sort.new")}</option>
               <option value="score">{t("hist.sort.score")}</option>
@@ -112,24 +135,36 @@ export default function History() {
           <TrendChart items={items} t={t} />
 
           <div className="stack">
-            {pageItems.map((i) => (
-              <div className="card hist-item" key={i.id}>
-                <div className="hist-row">
-                  <span className="ex-score" style={{ color: i.best.score >= 0.5 ? "var(--accent-dark)" : "var(--down)", fontSize: "24px" }}>{pct(i.best.score)}</span>
-                  <div className="hist-main">
-                    {i.title && <div className="hist-title">{i.title}</div>}
-                    <div className="hist-text">{i.text}</div>
-                    <div className="hist-meta">
-                      {t("hist.best")} {NAMES[i.best.source]} · YouTube {pct(i.scores.youtube)} · X {pct(i.scores.x)} · Reddit {pct(i.scores.reddit)} · {modelName(i.model)} · {new Date(i.ts).toLocaleString()}
+            {pageItems.map((i) => {
+              const status = historyStatus(i);
+              return (
+                <div className="card hist-item" key={i.id}>
+                  <div className="hist-row">
+                    <span className={`history-status-mark ${status}`} aria-hidden="true">
+                      {status === "completed" && i.best ? pct(i.best.score) : status === "failed" ? "!" : <span className="spinner" />}
+                    </span>
+                    <div className="hist-main">
+                      <div className="history-status-line">
+                        <span className={`history-status-badge ${status}`}>{t(`hist.status.${status}`)}</span>
+                        <span className="hist-meta">{new Date(i.ts).toLocaleString()}</span>
+                      </div>
+                      {i.title && <div className="hist-title">{i.title}</div>}
+                      <div className="hist-text">{i.text}</div>
+                      <div className="hist-meta">
+                        {i.best && i.scores
+                          ? `${t("hist.best")} ${NAMES[i.best.source]} · YouTube ${pct(i.scores.youtube)} · X ${pct(i.scores.x)} · Reddit ${pct(i.scores.reddit)} · ${modelName(i.model)}`
+                          : `${modelName(i.model)}${i.error ? ` · ${i.error}` : ""}`}
+                      </div>
+                    </div>
+                    <div className="hist-actions">
+                      <button className="link-x" onClick={() => onReuse(i)}>{t("hist.reuse")}</button>
+                      {i.prediction && i.best && <button className="link-x" onClick={() => setOpenItem(i)}>{t("hist.viewfull")}</button>}
+                      <button className="link-x" onClick={() => onDelete(i.id)}>{t("hist.delete")}</button>
                     </div>
                   </div>
-                  <div className="hist-actions">
-                    {i.prediction && <button className="link-x" onClick={() => setOpenItem(i)}>{t("hist.viewfull")}</button>}
-                    <button className="link-x" onClick={() => onDelete(i.id)}>{t("hist.delete")}</button>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {totalPages > 1 && (
@@ -142,7 +177,7 @@ export default function History() {
         </>
       )}
 
-      {openItem && openItem.prediction && (
+      {openItem && openItem.prediction && openItem.best && (
         <div className="modal-overlay" onClick={() => setOpenItem(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">

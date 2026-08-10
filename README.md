@@ -43,9 +43,15 @@ app/
   components.tsx    ScoreCard, FactorBars, ResultPanels
   globals.css       styling
 lib/
-  api.ts            AI-server client (analyze -> /report)
+  api.ts            AI-server client (predict + queued report polling)
   types.ts          shared types (Prediction, Factor, ...)
 ```
+
+Reports use the asynchronous API queue: the client submits to `POST /report/jobs`
+and polls `GET /report/jobs/{job_id}` until the result is ready. This avoids long
+HTTP connections through Tailscale or a reverse proxy. During a rolling backend
+upgrade, a server that does not expose the queue automatically falls back to the
+legacy synchronous `POST /report` endpoint.
 
 ## Deploy (Vercel)
 
