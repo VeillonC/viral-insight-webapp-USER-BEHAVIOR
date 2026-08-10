@@ -1,5 +1,7 @@
 // Static domain config surfaced in the UI.
 
+import type { PredictionModel } from "./types";
+
 // The model classifies a post as "viral-likely" when the score is at/above this.
 export const DECISION_THRESHOLD = 0.5;
 
@@ -7,6 +9,7 @@ export const DECISION_THRESHOLD = 0.5;
 // the analyze selector, insights page and history all read from this list.
 export interface ModelInfo {
   id: string;
+  apiId: PredictionModel;
   name: string;
   blurb: string;
   reliability: Record<string, number>; // ROC-AUC per platform ("" = overall)
@@ -14,13 +17,25 @@ export interface ModelInfo {
 export const MODELS: ModelInfo[] = [
   {
     id: "fusion-v1",
+    apiId: "legacy",
     name: "Fusion v1",
     blurb: "Content, audience, marketing roles and topics combined (XGBoost). Balanced default across networks.",
     reliability: { youtube: 0.92, reddit: 0.76, x: 0.72, "": 0.84 },
   },
+  {
+    id: "audience-x90",
+    apiId: "audience-x90",
+    name: "Audience X90",
+    blurb: "Audience-enriched model trained on 58,020 balanced posts with grouped out-of-fold validation.",
+    reliability: { youtube: 0.647, reddit: 0.556, x: 0.861, "": 0.729 },
+  },
 ];
 export const DEFAULT_MODEL_ID = "fusion-v1";
 export const modelName = (id?: string) => MODELS.find((m) => m.id === id)?.name ?? MODELS[0].name;
+export const modelApiId = (id?: string): PredictionModel =>
+  MODELS.find((m) => m.id === id)?.apiId ?? MODELS[0].apiId;
+export const modelReliability = (apiId?: string): Record<string, number> =>
+  MODELS.find((m) => m.apiId === apiId)?.reliability ?? MODELS[0].reliability;
 
 // Reliability of the default model, kept for the metric cards / network comparison.
 export const PLATFORM_RELIABILITY: Record<string, number> = MODELS[0].reliability;

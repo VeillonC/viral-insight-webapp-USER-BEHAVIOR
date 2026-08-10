@@ -8,6 +8,11 @@ A user enters a post (text + platform + optional audience), the app calls the
 AI-server `/report` endpoint, and displays the viral score, the factors behind it, the
 suggestions, and the generated report (EN/VI).
 
+The analysis and variant-lab screens preserve the historic `Fusion v1` choice
+(sent to the API as `legacy`) and also expose `Audience X90` (sent as
+`audience-x90`). The selected alias is forwarded to `/predict`, `/predict/batch`,
+and `/report`.
+
 ## Requirements
 
 - Node.js 18+ and npm
